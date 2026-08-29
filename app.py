@@ -11,6 +11,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
+# Config Halaman & Judul Tab Browser
 st.set_page_config(page_title="𐙚 Slide & Scribble", page_icon="📝", layout="wide")
 
 # Inisialisasi Session State
@@ -103,8 +104,8 @@ def upload_to_gdrive(file_bytes, filename="Hasil_Edit_Slide.pdf"):
         return None
 
 # --- INTERFACE UTAMA ---
-st.title("📝 Slide Annotator & Note Taker")
-st.caption("Unggah materi kuliah (PDF/PPTX), corat-coret slide, tambah catatan, dan unduh hasilnya.")
+st.title("𐙚 Slide & Scribble")
+st.caption("Unggah materi kuliah (PDF), corat-coret slide, tambah catatan, dan unduh/simpan hasilnya.")
 
 # Sidebar Pengaturan
 with st.sidebar:
