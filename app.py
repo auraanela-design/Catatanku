@@ -1,5 +1,4 @@
 import io
-import base64
 import fitz  # PyMuPDF
 import streamlit as st
 from pptx import Presentation
@@ -108,13 +107,6 @@ def hex_to_rgba(hex_code, alpha=0.35):
     r, g, b = tuple(int(hex_code[i:i+2], 16) for i in (0, 2, 4))
     return f"rgba({r}, {g}, {b}, {alpha})"
 
-# Fungsi mengonversi Gambar PIL ke format Base64 untuk Canvas Background
-def pil_to_base64(img):
-    buffered = io.BytesIO()
-    img.save(buffered, format="PNG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
-    return f"data:image/png;base64,{img_str}"
-
 # Fungsi Konversi PDF ke Gambar
 def convert_pdf_to_images(pdf_bytes):
     images = []
@@ -204,7 +196,6 @@ def upload_to_gdrive(file_bytes, filename="Hasil_Edit_Slide.pdf"):
 
 # --- INTERFACE UTAMA ---
 USER_NAME = "✨ Laaura's Study Desk"
-
 st.markdown(f'<div class="user-badge">{t["e_main"]} {USER_NAME}</div>', unsafe_allow_html=True)
 st.title(f"𐙚 Slide & Scribble {t['e_main']}")
 st.caption(f"Unggah materi kuliah (PDF), corat-coret slide, catat poin penting, dan unduh/simpan hasilnya {t['e_sub']}")
@@ -304,16 +295,13 @@ if st.session_state.slides_images:
         canvas_height = int(canvas_width * aspect_ratio)
         
         resized_bg = current_bg.resize((canvas_width, canvas_height))
-        
-        # Mengubah gambar slide menjadi data URL (Base64)
-        bg_base64 = pil_to_base64(resized_bg)
 
-        # Canvas dengan gambar slide langsung di dalamnya
+        # Menggunakan background_image dengan objek PIL Image langsung
         canvas_result = st_canvas(
             fill_color="rgba(255, 255, 0, 0.2)",
             stroke_width=stroke_width,
             stroke_color=stroke_color,
-            background_image_url=bg_base64,
+            background_image=resized_bg,
             update_streamlit=True,
             height=canvas_height,
             width=canvas_width,
