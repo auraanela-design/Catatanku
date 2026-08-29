@@ -1,4 +1,5 @@
 import io
+import base64
 import fitz  # PyMuPDF
 import streamlit as st
 from pptx import Presentation
@@ -23,6 +24,14 @@ if "annotated_slides" not in st.session_state:
     st.session_state.annotated_slides = {}
 if "mini_notes" not in st.session_state:
     st.session_state.mini_notes = {}
+
+# --- FUNGSI HELPER UNTUK STREAMLIT RECENT VERSION (FIX BASE64 BACKGROUND) ---
+def image_to_data_url(img):
+    """Mengubah PIL Image ke Data URL Base64 agar kompatibel dengan streamlit-drawable-canvas terbaru"""
+    buffered = io.BytesIO()
+    img.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return f"data:image/png;base64,{img_str}"
 
 # --- SISTEM TEMA & EMOJI DINAMIS ---
 with st.sidebar:
@@ -275,7 +284,7 @@ with st.sidebar:
 if st.session_state.slides_images:
     total_slides = len(st.session_state.slides_images)
     
-    # Pengecekan slide agar tidak error jika slide == 1
+    # Navigasi Slide
     if total_slides > 1:
         col_nav1, col_nav2, col_nav3 = st.columns([1, 2, 1])
         with col_nav2:
@@ -297,14 +306,14 @@ if st.session_state.slides_images:
         
         resized_bg = current_bg.resize((canvas_width, canvas_height))
 
-        # Konversi gambar ke RGBA untuk menjamin kompatibilitas canvas
-        bg_rgba = resized_bg.convert("RGBA")
+        # Mengubah gambar background ke Data URL Base64 untuk menghindari st_image.image_to_url error
+        bg_data_url = image_to_data_url(resized_bg)
 
         canvas_result = st_canvas(
             fill_color="rgba(255, 255, 0, 0.2)",
             stroke_width=stroke_width,
             stroke_color=stroke_color,
-            background_image=bg_rgba,
+            background_image=bg_data_url,
             update_streamlit=True,
             height=canvas_height,
             width=canvas_width,
