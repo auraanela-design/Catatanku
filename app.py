@@ -218,10 +218,12 @@ with st.sidebar:
                 st.success(f"Berhasil memuat {len(st.session_state.slides_images)} slide!")
 
     st.divider()
-    st.header(f"{t['e_draw']} Alat Coret-Coret")
+    st.header(f"{t['e_draw']} Alat Coret-Coret & Teks")
     
+    # Menambahkan opsi Teks (text)
     mode_indo_map = {
         "✏️ Coret Bebas (Pensil)": "freedraw",
+        "🔤 Tambah Teks (Ketik)": "text",
         "📏 Garis Lurus": "line",
         "🔲 Kotak": "rect",
         "⚪ Lingkaran": "circle",
@@ -230,8 +232,8 @@ with st.sidebar:
     selected_mode_label = st.selectbox("Mode Alat:", list(mode_indo_map.keys()))
     drawing_mode = mode_indo_map[selected_mode_label]
     
-    # Pengaturan Jenis Alat & Warna Stabilo Bebas
-    tool_type = st.radio("Jenis Kuas:", ["✏️ Pen Biasa", "🖍️ Stabilo (Transparan)"], index=0)
+    # Pengaturan Jenis Alat & Warna
+    tool_type = st.radio("Jenis Alat:", ["✏️ Pen / Teks Biasa", "🖍️ Stabilo (Transparan)"], index=0)
 
     if tool_type == "🖍️ Stabilo (Transparan)":
         preset_color = st.radio(
@@ -253,7 +255,7 @@ with st.sidebar:
         default_stroke_width = 16
     else:
         preset_color = st.radio(
-            "Warna Pen:",
+            "Warna Pen / Teks:",
             ["🔴 Merah", "🔵 Biru", "🟢 Hijau", "⚫ Hitam", "🎨 Warna Kustom"],
             index=0
         )
@@ -264,12 +266,12 @@ with st.sidebar:
             "⚫ Hitam": "#000000"
         }
         if preset_color == "🎨 Warna Kustom":
-            stroke_color = st.color_picker("Pilih Warna Pen:", "#FF0000")
+            stroke_color = st.color_picker("Pilih Warna Pen/Teks:", "#FF0000")
         else:
             stroke_color = pen_map[preset_color]
         default_stroke_width = 3
 
-    stroke_width = st.slider("Ukuran Kuas / Garis:", 1, 30, default_stroke_width)
+    stroke_width = st.slider("Ukuran Kuas / Ketebalan Garis:", 1, 30, default_stroke_width)
 
 # Editor Utama
 if st.session_state.slides_images:
@@ -293,6 +295,7 @@ if st.session_state.slides_images:
         
         resized_bg = current_bg.resize((canvas_width, canvas_height))
 
+        # Canvas dengan dukungan fitur pengetikan teks
         canvas_result = st_canvas(
             fill_color="rgba(255, 255, 0, 0.2)",
             stroke_width=stroke_width,
