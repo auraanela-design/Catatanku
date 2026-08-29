@@ -66,20 +66,25 @@ THEMES = {
     }
 }
 
-# Fonts Definition (ReportLab built-in standard fonts & CSS fallbacks)
 FONTS = {
     "Classic Serif (Times)": {"rl": "Times-Roman", "rl_bold": "Times-Bold", "css": "'Times New Roman', serif"},
     "Modern Sans (Helvetica)": {"rl": "Helvetica", "rl_bold": "Helvetica-Bold", "css": "'Helvetica Neue', Helvetica, Arial, sans-serif"},
     "Typewriter Monospace (Courier)": {"rl": "Courier", "rl_bold": "Courier-Bold", "css": "'Courier New', Courier, monospace"}
 }
 
-# 3. Sidebar Selection & Customization
+FONT_SIZES = {
+    "Kecil": {"css": "0.9rem", "rl": 9, "leading": 14},
+    "Sedang": {"css": "1.05rem", "rl": 11, "leading": 17},
+    "Besar": {"css": "1.2rem", "rl": 13, "leading": 20}
+}
+
+# 3. Sidebar Customization
 st.sidebar.subheader("🎨 Custom Studio & Tema")
 selected_theme_name = st.sidebar.selectbox("Pilih Tema Color Palette:", list(THEMES.keys()))
 theme = THEMES[selected_theme_name]
 emojis = theme['emojis'].split()
 
-st.sidebar.subheader("📄 Kustomisasi Kertas & Font")
+st.sidebar.subheader("📄 Kustomisasi Kertas & Tipografi")
 paper_style = st.sidebar.selectbox(
     "Pilih Pola Kertas:",
     ["Polos (Clean Blank)", "Buku Tulis (Ruled Lines)", "Kotak-Kotak (Grid)", "Bintik-Bintik (Dotted)"]
@@ -88,9 +93,17 @@ paper_style = st.sidebar.selectbox(
 font_style_name = st.sidebar.selectbox("Pilih Gaya Font:", list(FONTS.keys()))
 selected_font = FONTS[font_style_name]
 
-summary_length = st.sidebar.radio("Jenis Rangkuman:", ["Singkat", "Sedang", "Panjang"])
+font_size_name = st.sidebar.selectbox("Ukuran Font:", list(FONT_SIZES.keys()), index=1)
+selected_size = FONT_SIZES[font_size_name]
 
-# Inject CSS Dynamic Page & Background Styling
+st.sidebar.subheader("📝 Mode Rangkuman AI")
+summary_format = st.sidebar.selectbox(
+    "Gaya Format Rangkuman:",
+    ["Campuran (Paragraf + Bullet Points)", "Bullet Points (Poin-Poin)", "Paragraf"]
+)
+summary_length = st.sidebar.radio("Panjang Rangkuman:", ["Singkat", "Sedang", "Panjang"])
+
+# Inject CSS Dynamic Styling
 paper_bg_css = ""
 if paper_style == "Buku Tulis (Ruled Lines)":
     paper_bg_css = f"background-image: repeating-linear-gradient(transparent, transparent 27px, {theme['line_color']} 28px);"
@@ -141,10 +154,11 @@ st.markdown(f"""
         background-color: #ffffff;
         border: 2px solid {theme['line_color']};
         border-radius: 12px;
-        padding: 25px;
+        padding: 30px;
         box-shadow: 0 8px 20px rgba(0,0,0,0.06);
         color: #333333;
         font-family: {selected_font['css']};
+        font-size: {selected_size['css']};
         line-height: 1.8;
         {paper_bg_css}
     }}
@@ -205,8 +219,8 @@ def extract_from_pptx(uploaded_file):
                 images.append(Image.open(io.BytesIO(shape.image.blob)))
     return text, images
 
-# 6. Summarizer
-def generate_summary(text, length_option):
+# 6. Smart Summarizer (GPT-like format)
+def generate_summary(text, length_option, format_option):
     sentences = [s.strip() for s in text.split('.') if len(s.strip()) > 10]
     if not sentences:
         return "Tidak ada teks yang cukup untuk dirangkum."
@@ -218,10 +232,20 @@ def generate_summary(text, length_option):
     else:
         limit = max(8, int(len(sentences) * 0.75))
         
-    return ". ".join(sentences[:limit]) + "."
+    selected_sentences = sentences[:limit]
 
-# 7. ReportLab PDF Generation with Paper Patterns
-def create_custom_pdf(summary_text, images, theme_info, font_info, pattern_name):
+    if format_option == "Bullet Points (Poin-Poin)":
+        return "\n".join([f"• {s}." for s in selected_sentences])
+    elif format_option == "Paragraf":
+        return ". ".join(selected_sentences) + "."
+    else:  # Campuran
+        mid = max(1, len(selected_sentences) // 2)
+        intro_para = ". ".join(selected_sentences[:mid]) + "."
+        bullet_pts = "\n".join([f"• {s}." for s in selected_sentences[mid:]])
+        return f"{intro_para}\n\n<b>Poin-Poin Utama:</b>\n{bullet_pts}"
+
+# 7. ReportLab PDF Engine
+def create_custom_pdf(summary_text, selected_images, theme_info, font_info, size_info, pattern_name):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer, 
@@ -253,8 +277,8 @@ def create_custom_pdf(summary_text, images, theme_info, font_info, pattern_name)
     body_style = ParagraphStyle(
         'BodyTextCustomPaper',
         fontName=font_info['rl'],
-        fontSize=10.5,
-        leading=16,
+        fontSize=size_info['rl'],
+        leading=size_info['leading'],
         textColor=colors.HexColor("#333333"),
         spaceAfter=8
     )
@@ -279,8 +303,8 @@ def create_custom_pdf(summary_text, images, theme_info, font_info, pattern_name)
     story.append(header_table)
     story.append(Spacer(1, 18))
 
-    # Summary Container
-    formatted_summary = summary_text.replace('\n', '<br/><br/>')
+    # Summary Text Block
+    formatted_summary = summary_text.replace('\n', '<br/>')
     summary_paragraph = Paragraph(formatted_summary, body_style)
     
     summary_table = Table([[summary_paragraph]], colWidths=[520])
@@ -293,17 +317,17 @@ def create_custom_pdf(summary_text, images, theme_info, font_info, pattern_name)
     
     story.append(summary_table)
 
-    # Images
-    if images:
+    # Selected Images Attached to PDF
+    if selected_images:
         story.append(Spacer(1, 15))
-        story.append(Paragraph(f"<b>{emojis[2]} Lampiran Gambar:</b>", ParagraphStyle('ImgHeaderCustom', fontName=font_info['rl_bold'], fontSize=12, textColor=theme_info['pdf_header'])))
+        story.append(Paragraph(f"<b>{emojis[2]} Lampiran Gambar Terpilih:</b>", ParagraphStyle('ImgHeaderCustom', fontName=font_info['rl_bold'], fontSize=12, textColor=theme_info['pdf_header'])))
         story.append(Spacer(1, 8))
         
-        for img in images[:4]:
+        for img in selected_images:
             img_buffer = io.BytesIO()
             img.convert('RGB').save(img_buffer, format='JPEG')
             img_buffer.seek(0)
-            rl_img = RLImage(img_buffer, width=240, height=150)
+            rl_img = RLImage(img_buffer, width=280, height=170)
             
             img_table = Table([[rl_img]], colWidths=[520])
             img_table.setStyle(TableStyle([
@@ -313,14 +337,11 @@ def create_custom_pdf(summary_text, images, theme_info, font_info, pattern_name)
             story.append(img_table)
             story.append(Spacer(1, 10))
 
-    # Pattern Drawing Engine
     def draw_background_and_pattern(canvas, doc):
         canvas.saveState()
-        # Draw Background Color
         canvas.setFillColor(theme_info['pdf_bg'])
         canvas.rect(0, 0, doc.pagesize[0], doc.pagesize[1], fill=1, stroke=0)
         
-        # Draw Paper Patterns
         line_col = theme_info['pdf_border']
         canvas.setStrokeColor(line_col)
         canvas.setFillColor(line_col)
@@ -357,7 +378,7 @@ def create_custom_pdf(summary_text, images, theme_info, font_info, pattern_name)
     buffer.seek(0)
     return buffer
 
-# 8. Interactive UI Workflow
+# 8. Interactive App Workflow
 uploaded_file = st.file_uploader(
     f"{emojis[3]} Unggah dokumen kamu (PDF, PPTX, atau DOCX):", 
     type=["pdf", "pptx", "docx"]
@@ -366,49 +387,82 @@ uploaded_file = st.file_uploader(
 if uploaded_file is not None:
     file_type = uploaded_file.name.split('.')[-1].lower()
     
-    if st.button("✨ Buat Rangkuman Custom"):
-        with st.spinner(f"Sedang merangkum dan mendesain kertas kamu... {emojis[4]}"):
+    if 'raw_text' not in st.session_state or st.session_state.get('file_name') != uploaded_file.name:
+        with st.spinner(f"Mengekstrak file... {emojis[4]}"):
             if file_type == "pdf":
                 raw_text, images = extract_from_pdf(uploaded_file)
             elif file_type == "docx":
                 raw_text, images = extract_from_docx(uploaded_file)
             elif file_type == "pptx":
                 raw_text, images = extract_from_pptx(uploaded_file)
+            
+            st.session_state['raw_text'] = raw_text
+            st.session_state['all_images'] = images
+            st.session_state['file_name'] = uploaded_file.name
 
-            if raw_text.strip():
-                st.session_state['summary'] = generate_summary(raw_text, summary_length)
-                st.session_state['images'] = images
-                st.session_state['file_name'] = uploaded_file.name
-            else:
-                st.warning("Tidak ditemukan teks yang dapat dibaca dari dokumen ini.")
+    # Image Selector Component
+    all_images = st.session_state.get('all_images', [])
+    selected_images = []
+    
+    if all_images:
+        st.markdown(f"### {emojis[2]} Pilih Gambar untuk Rangkuman ({len(all_images)} Gambar Ditemukan)")
+        st.caption("Centang gambar penting (grafik, kurva, komoditas) dan abaikan gambar dekorasi/background:")
+        
+        cols = st.columns(min(3, len(all_images)))
+        for idx, img in enumerate(all_images):
+            with cols[idx % 3]:
+                st.image(img, use_container_width=True)
+                is_checked = st.checkbox(f"Sertakan Gambar {idx+1}", key=f"img_chk_{idx}")
+                if is_checked:
+                    selected_images.append(img)
+                    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    if st.button("✨ Buat Rangkuman Custom"):
+        if st.session_state['raw_text'].strip():
+            st.session_state['summary'] = generate_summary(
+                st.session_state['raw_text'], 
+                summary_length, 
+                summary_format
+            )
+            st.session_state['selected_images'] = selected_images
+        else:
+            st.warning("Tidak ditemukan teks yang dapat dibaca dari dokumen ini.")
 
 if 'summary' in st.session_state:
     summary = st.session_state['summary']
-    images = st.session_state['images']
+    selected_imgs = st.session_state.get('selected_images', [])
     
     st.markdown("---")
-    st.markdown(f"### {emojis[0]} Preview Hasil Rangkuman (Custom Paper: {paper_style})")
+    st.markdown(f"### {emojis[0]} Preview Lembar Rangkuman ({paper_style})")
     
-    # Paper Preview Frame
+    # Live Paper Preview
     st.markdown(f"""
         <div class="preview-paper">
             <h2 style="text-align: center; color: {theme['text']}; margin-top: 0;">{emojis[0]} Laaura's Resume {emojis[1]}</h2>
-            <p style="text-align: center; color: #777; font-weight: bold; margin-bottom: 20px;">✨ Created by Laaura ✨</p>
+            <p style="text-align: center; color: #777; font-weight: bold; margin-bottom: 25px;">✨ Created by Laaura ✨</p>
             <p style="white-space: pre-line;">{summary}</p>
         </div>
     """, unsafe_allow_html=True)
     
-    if images:
-        st.markdown(f"#### {emojis[2]} Galeri Gambar ({len(images)})")
-        cols = st.columns(min(3, len(images)))
-        for idx, img in enumerate(images[:6]):
-            with cols[idx % 3]:
-                st.image(img, caption=f"Gambar {idx+1}", use_container_width=True)
+    if selected_imgs:
+        st.markdown(f"#### {emojis[2]} Lampiran Gambar Terpilih ({len(selected_imgs)})")
+        cols_sel = st.columns(min(3, len(selected_imgs)))
+        for idx, img in enumerate(selected_imgs):
+            with cols_sel[idx % 3]:
+                st.image(img, caption=f"Lampiran {idx+1}", use_container_width=True)
                 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # PDF Generator Button
-    pdf_bytes = create_custom_pdf(summary, images, theme, selected_font, paper_style)
+    # Download Button
+    pdf_bytes = create_custom_pdf(
+        summary, 
+        selected_imgs, 
+        theme, 
+        selected_font, 
+        selected_size, 
+        paper_style
+    )
     st.download_button(
         label="📥 Download Version PDF (Custom Designed)",
         data=pdf_bytes,
