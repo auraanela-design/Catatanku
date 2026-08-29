@@ -1,4 +1,5 @@
 import io
+import base64
 import fitz  # PyMuPDF
 import streamlit as st
 from pptx import Presentation
@@ -107,6 +108,13 @@ def hex_to_rgba(hex_code, alpha=0.35):
     r, g, b = tuple(int(hex_code[i:i+2], 16) for i in (0, 2, 4))
     return f"rgba({r}, {g}, {b}, {alpha})"
 
+# Fungsi mengonversi Gambar PIL ke format Base64 untuk Canvas Background
+def pil_to_base64(img):
+    buffered = io.BytesIO()
+    img.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return f"data:image/png;base64,{img_str}"
+
 # Fungsi Konversi PDF ke Gambar
 def convert_pdf_to_images(pdf_bytes):
     images = []
@@ -195,7 +203,7 @@ def upload_to_gdrive(file_bytes, filename="Hasil_Edit_Slide.pdf"):
         return None
 
 # --- INTERFACE UTAMA ---
-USER_NAME = "✨ My Personal Study Space"
+USER_NAME = "✨ Laaura's Study Desk"
 
 st.markdown(f'<div class="user-badge">{t["e_main"]} {USER_NAME}</div>', unsafe_allow_html=True)
 st.title(f"𐙚 Slide & Scribble {t['e_main']}")
@@ -296,16 +304,16 @@ if st.session_state.slides_images:
         canvas_height = int(canvas_width * aspect_ratio)
         
         resized_bg = current_bg.resize((canvas_width, canvas_height))
+        
+        # Mengubah gambar slide menjadi data URL (Base64)
+        bg_base64 = pil_to_base64(resized_bg)
 
-        # PERBAIKAN: Menggunakan use_column_width=True agar cocok dengan Streamlit versi lama
-        st.image(resized_bg, use_column_width=True)
-
-        # Canvas untuk Mencoret-coret
+        # Canvas dengan gambar slide langsung di dalamnya
         canvas_result = st_canvas(
             fill_color="rgba(255, 255, 0, 0.2)",
             stroke_width=stroke_width,
             stroke_color=stroke_color,
-            background_color="rgba(0, 0, 0, 0)",
+            background_image_url=bg_base64,
             update_streamlit=True,
             height=canvas_height,
             width=canvas_width,
@@ -313,7 +321,7 @@ if st.session_state.slides_images:
             key=f"canvas_slide_{slide_num}",
         )
         
-        # Menggabungkan gambar slide dengan coretan untuk diekspor
+        # Menyimpan hasil coretan
         if canvas_result.image_data is not None:
             annotated_img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
             final_slide = Image.new("RGB", resized_bg.size, (255, 255, 255))
