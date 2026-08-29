@@ -186,3 +186,54 @@ if st.session_state.slides_images:
                 )
 else:
     st.info("Silakan unggah berkas PDF atau PPTX materi kuliahmu melalui sidebar di sebelah kiri untuk memulai.")
+
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+import streamlit as st
+import io
+
+# Fungsi Inisialisasi Google Drive API dari Streamlit Secrets
+def get_drive_service():
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = service_account.Credentials.from_service_account_info(
+        creds_dict,
+        scopes=['https://www.googleapis.com/auth/drive.file']
+    )
+    return build('drive', 'v3', credentials=creds)
+
+# Fungsi Upload File Ke GDrive
+def upload_to_gdrive(file_bytes, filename="Hasil_Edit_Slide.pdf"):
+    try:
+        service = get_drive_service()
+        folder_id = st.secrets["FOLDER_ID"]
+        
+        file_metadata = {
+            'name': filename,
+            'parents': [folder_id]
+        }
+        
+        media = MediaIoBaseUpload(
+            io.BytesIO(file_bytes),
+            mimetype='application/pdf',
+            resumable=True
+        )
+        
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+        
+        return file.get('id')
+    except Exception as e:
+        st.error(f"Gagal upload ke Drive: {str(e)}")
+        return None
+
+# Contoh Tombol di Streamlit UI
+if st.button("☁️ Simpan Langsung ke Google Drive"):
+    with st.spinner("Mengunggah ke Google Drive..."):
+        pdf_data = generate_exported_pdf().getvalue()
+        file_id = upload_to_gdrive(pdf_data)
+        if file_id:
+            st.success("Berhasil disimpan ke Google Drive kamu! 🎉")
