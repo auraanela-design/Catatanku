@@ -1,8 +1,6 @@
 streamlit
-streamlit-drawable-canvas
 PyMuPDF
+python-docx
+python-pptx
 Pillow
 reportlab
-python-pptx
-google-auth
-google-api-python-client
