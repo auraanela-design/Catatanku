@@ -195,7 +195,7 @@ def upload_to_gdrive(file_bytes, filename="Hasil_Edit_Slide.pdf"):
         return None
 
 # --- INTERFACE UTAMA ---
-USER_NAME = "✨ Laaura's Study Desk"
+USER_NAME = "✨ My Personal Study Space"
 
 st.markdown(f'<div class="user-badge">{t["e_main"]} {USER_NAME}</div>', unsafe_allow_html=True)
 st.title(f"𐙚 Slide & Scribble {t['e_main']}")
@@ -275,7 +275,7 @@ with st.sidebar:
 if st.session_state.slides_images:
     total_slides = len(st.session_state.slides_images)
     
-    # Navigasi Slide yang Aman
+    # Navigasi Slide
     if total_slides > 1:
         col_nav1, col_nav2, col_nav3 = st.columns([1, 2, 1])
         with col_nav2:
@@ -289,15 +289,18 @@ if st.session_state.slides_images:
     
     with col_canvas:
         st.subheader(f"🖼️ Canvas Slide {t['e_draw']}")
+        
+        # Ambil slide mentah (tanpa coretan)
         current_bg = st.session_state.slides_images[slide_num]
         
         canvas_width = 650
         aspect_ratio = current_bg.height / current_bg.width
         canvas_height = int(canvas_width * aspect_ratio)
         
-        # Resize dan gunakan objek PIL Image langsung
-        resized_bg = current_bg.resize((canvas_width, canvas_height))
+        # Pastikan format gambar RGBA (transparan aman)
+        resized_bg = current_bg.resize((canvas_width, canvas_height)).convert("RGBA")
 
+        # Tampilkan canvas dengan mengikutsertakan gambar latar belakang secara langsung
         canvas_result = st_canvas(
             fill_color="rgba(255, 255, 0, 0.2)",
             stroke_width=stroke_width,
@@ -307,7 +310,7 @@ if st.session_state.slides_images:
             height=canvas_height,
             width=canvas_width,
             drawing_mode=drawing_mode,
-            key=f"canvas_{slide_num}",
+            key=f"canvas_slide_{slide_num}",
         )
         
         if canvas_result.image_data is not None:
