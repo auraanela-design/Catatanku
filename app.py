@@ -24,7 +24,7 @@ if "annotated_slides" not in st.session_state:
 if "mini_notes" not in st.session_state:
     st.session_state.mini_notes = {}
 
-# --- SISTEM TEMA / THEMES ---
+# --- SISTEM TEMA & EMOJI DINAMIS ---
 with st.sidebar:
     st.header("🎨 Pilih Tema Tampilan")
     selected_theme = st.selectbox(
@@ -32,35 +32,39 @@ with st.sidebar:
         ["🎀 Coquette Soft", "☁️ Langit & Awan", "🍓 Buah-Buahan", "🌿 Sage Minimalis"]
     )
 
-# Definisi CSS Warna per Tema
+# Master Konfigurasi Warna & Emoji Tema
 theme_styles = {
     "🎀 Coquette Soft": {
         "bg_sidebar": "#FFF0F3",
         "primary": "#FFB7C5",
         "text_header": "#800926",
         "card_bg": "#FFF8F9",
-        "border": "#FFCCD5"
+        "border": "#FFCCD5",
+        "e_main": "🎀", "e_sub": "🩰", "e_file": "💌", "e_draw": "🪞", "e_note": "🧸", "e_cloud": "🌸"
     },
     "☁️ Langit & Awan": {
         "bg_sidebar": "#F0F8FF",
         "primary": "#87CEEB",
         "text_header": "#1E3D59",
         "card_bg": "#F9FCFF",
-        "border": "#B0E0E6"
+        "border": "#B0E0E6",
+        "e_main": "☁️", "e_sub": "🌤️", "e_file": "✈️", "e_draw": "🩵", "e_note": "🌟", "e_cloud": "🕊️"
     },
     "🍓 Buah-Buahan": {
         "bg_sidebar": "#FFF3E0",
         "primary": "#FF8A65",
         "text_header": "#D84315",
         "card_bg": "#FFF9F5",
-        "border": "#FFCCBC"
+        "border": "#FFCCBC",
+        "e_main": "🍓", "e_sub": "🍑", "e_file": "🧺", "e_draw": "🍒", "e_note": "🧃", "e_cloud": "🥑"
     },
     "🌿 Sage Minimalis": {
         "bg_sidebar": "#F2F5F3",
         "primary": "#87A96B",
         "text_header": "#2E4A3B",
         "card_bg": "#F9FAF9",
-        "border": "#C9D6CE"
+        "border": "#C9D6CE",
+        "e_main": "🌿", "e_sub": "🍃", "e_file": "📑", "e_draw": "🍵", "e_note": "🪴", "e_cloud": "🕯️"
     }
 }
 
@@ -85,11 +89,15 @@ st.markdown(f"""
             border: none !important;
             font-weight: bold;
         }}
-        .mini-note-box {{
+        .user-badge {{
             background-color: {t['bg_sidebar']};
-            border-left: 5px solid {t['primary']};
-            padding: 10px 15px;
-            border-radius: 8px;
+            color: {t['text_header']};
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px solid {t['border']};
+            display: inline-block;
             margin-bottom: 10px;
         }}
     </style>
@@ -130,7 +138,7 @@ def generate_exported_pdf():
         mini_note = st.session_state.mini_notes.get(idx, "").strip()
         
         if mini_note:
-            story.append(Paragraph(f"<b>📌 Mini Notes / Istilah Penting:</b><br/>{mini_note}", note_style))
+            story.append(Paragraph(f"<b>📌 Mini Notes:</b><br/>{mini_note}", note_style))
             story.append(Spacer(1, 5))
 
         if note_text:
@@ -183,16 +191,21 @@ def upload_to_gdrive(file_bytes, filename="Hasil_Edit_Slide.pdf"):
         return None
 
 # --- INTERFACE UTAMA ---
-st.title("𐙚 Slide & Scribble")
-st.caption("Unggah materi kuliah (PDF), corat-coret slide, catat poin penting, dan unduh/simpan hasilnya.")
+# GANTI NAMA KAMU DI SINI (Contoh: "Biyya's Space", "Tya's Workspace", dll)
+USER_NAME = "✨ Laaura's Study Desk"
+
+st.markdown(f'<div class="user-badge">{t["e_main"]} {USER_NAME}</div>', unsafe_allow_html=True)
+st.title(f"𐙚 Slide & Scribble {t['e_main']}")
+st.caption(f"Unggah materi kuliah (PDF), corat-coret slide, catat poin penting, dan unduh/simpan hasilnya {t['e_sub']}")
 
 # Sidebar Pengaturan
 with st.sidebar:
-    st.header("📂 Unggah Berkas")
+    st.divider()
+    st.header(f"{t['e_file']} Unggah Berkas")
     uploaded_file = st.file_uploader("Pilih file PDF", type=["pdf"])
     
     if uploaded_file:
-        if st.button("🔄 Proses Berkas Baru"):
+        if st.button(f"🔄 Proses Berkas Baru {t['e_sub']}"):
             with st.spinner("Memproses slide..."):
                 file_bytes = uploaded_file.read()
                 st.session_state.slides_images = convert_pdf_to_images(file_bytes)
@@ -202,14 +215,14 @@ with st.sidebar:
                 st.success(f"Berhasil memuat {len(st.session_state.slides_images)} slide!")
 
     st.divider()
-    st.header("🎨 Alat Coret-Coret")
+    st.header(f"{t['e_draw']} Alat Coret-Coret")
     
     mode_indo_map = {
-        "✏️ Coret Bebas (Pensil)": "freedraw",
-        "📏 Garis Lurus": "line",
-        "🔲 Kotak": "rect",
-        "⚪ Lingkaran": "circle",
-        "✋ Geser / Pilih Objek": "transform"
+        f"✏️ Coret Bebas (Pensil)": "freedraw",
+        f"📏 Garis Lurus": "line",
+        f"🔲 Kotak": "rect",
+        f"⚪ Lingkaran": "circle",
+        f"✋ Geser / Pilih Objek": "transform"
     }
     selected_mode_label = st.selectbox("Mode Alat:", list(mode_indo_map.keys()))
     drawing_mode = mode_indo_map[selected_mode_label]
@@ -246,12 +259,12 @@ if st.session_state.slides_images:
     with col_nav2:
         slide_num = st.slider("Pilih Slide:", 1, total_slides, 1) - 1
 
-    st.markdown(f"### Slide {slide_num + 1} dari {total_slides}")
+    st.markdown(f"### Slide {slide_num + 1} dari {total_slides} {t['e_sub']}")
     
     col_canvas, col_notes = st.columns([3, 2])
     
     with col_canvas:
-        st.subheader("🖼️ Canvas Slide")
+        st.subheader(f"🖼️ Canvas Slide {t['e_draw']}")
         current_bg = st.session_state.slides_images[slide_num]
         
         canvas_width = 650
@@ -280,17 +293,17 @@ if st.session_state.slides_images:
             st.session_state.annotated_slides[slide_num] = final_slide
 
     with col_notes:
-        st.subheader("📌 Mini Notes (Poin Penting/Rumus)")
+        st.subheader(f"{t['e_note']} Mini Notes (Rumus/Poin)")
         current_mini = st.session_state.mini_notes.get(slide_num, "")
         updated_mini = st.text_input(
-            "Tulis kata kunci/pertanyaan singkat:",
+            "Tulis kata kunci / istilah penting:",
             value=current_mini,
             key=f"mini_{slide_num}",
-            placeholder="Contoh: Definisikan istilah X / Rumus Y"
+            placeholder="Contoh: Definisikan X / Rumus Y"
         )
         st.session_state.mini_notes[slide_num] = updated_mini
         
-        st.subheader("📝 Catatan Utama Slide")
+        st.subheader(f"📝 Catatan Utama Slide")
         current_note = st.session_state.slide_notes.get(slide_num, "")
         updated_note = st.text_area(
             "Tulis penjelasan materi di sini:", 
@@ -305,22 +318,22 @@ if st.session_state.slides_images:
     # Ekspor & GDrive
     col_exp1, col_exp2 = st.columns([1, 1])
     with col_exp1:
-        if st.button("📄 Generate PDF Local Download"):
+        if st.button(f"📄 Generate PDF Local Download {t['e_sub']}"):
             with st.spinner("Menyusun PDF..."):
                 pdf_data = generate_exported_pdf()
                 st.download_button(
-                    label="⬇️ Unduh Berkas PDF",
+                    label=f"⬇️ Unduh Berkas PDF {t['e_main']}",
                     data=pdf_data,
                     file_name="Hasil_Edit_Slide.pdf",
                     mime="application/pdf"
                 )
     
     with col_exp2:
-        if st.button("☁️ Simpan Langsung ke Google Drive"):
+        if st.button(f"{t['e_cloud']} Simpan Langsung ke Google Drive"):
             with st.spinner("Mengunggah ke Google Drive..."):
                 pdf_bytes_data = generate_exported_pdf().getvalue()
                 file_id = upload_to_gdrive(pdf_bytes_data)
                 if file_id:
-                    st.success("Berhasil disimpan ke Google Drive kamu! 🎉")
+                    st.success(f"Berhasil disimpan ke Google Drive kamu! 🎉 {t['e_main']}")
 else:
-    st.info("Silakan unggah berkas PDF materi kuliahmu melalui sidebar di sebelah kiri untuk memulai.")
+    st.info(f"Silakan unggah berkas PDF materi kuliahmu melalui sidebar di sebelah kiri untuk memulai {t['e_sub']}")
