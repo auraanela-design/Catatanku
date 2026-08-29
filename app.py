@@ -275,7 +275,7 @@ with st.sidebar:
 if st.session_state.slides_images:
     total_slides = len(st.session_state.slides_images)
     
-    # Navigasi Slide yang Aman dari Error Slider
+    # Pengecekan slide agar tidak error jika slide == 1
     if total_slides > 1:
         col_nav1, col_nav2, col_nav3 = st.columns([1, 2, 1])
         with col_nav2:
@@ -297,11 +297,14 @@ if st.session_state.slides_images:
         
         resized_bg = current_bg.resize((canvas_width, canvas_height))
 
+        # Konversi gambar ke RGBA untuk menjamin kompatibilitas canvas
+        bg_rgba = resized_bg.convert("RGBA")
+
         canvas_result = st_canvas(
             fill_color="rgba(255, 255, 0, 0.2)",
             stroke_width=stroke_width,
             stroke_color=stroke_color,
-            background_image=resized_bg,
+            background_image=bg_rgba,
             update_streamlit=True,
             height=canvas_height,
             width=canvas_width,
