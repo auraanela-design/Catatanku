@@ -1,7 +1,10 @@
-streamlit
+```txt
+streamlit==1.39.0
+streamlit-drawable-canvas==0.9.3
 PyMuPDF
 Pillow
 reportlab
 python-pptx
 google-auth
 google-api-python-client
+```
