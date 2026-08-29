@@ -195,7 +195,7 @@ def upload_to_gdrive(file_bytes, filename="Hasil_Edit_Slide.pdf"):
         return None
 
 # --- INTERFACE UTAMA ---
-USER_NAME = "✨ My Personal Study Space"
+USER_NAME = "✨ Laaura's Study Desk"
 
 st.markdown(f'<div class="user-badge">{t["e_main"]} {USER_NAME}</div>', unsafe_allow_html=True)
 st.title(f"𐙚 Slide & Scribble {t['e_main']}")
