@@ -5,3 +5,5 @@ python-pptx
 pdf2image
 Pillow
 reportlab
+google-api-python-client
+google-auth
