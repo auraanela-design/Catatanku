@@ -118,12 +118,19 @@ elif paper_style == "Bintik-Bintik (Dotted)":
 
 st.markdown(f"""
     <style>
-    .stApp {{
-        background: {theme['gradient']};
-        background-attachment: fixed;
-        color: {theme['text']};
+    /* Mengubah latar belakang area utama DAN sidebar agar seragam */
+    .stApp, [data-testid="stSidebar"] {{
+        background: {theme['gradient']} !important;
+        background-attachment: fixed !important;
+        color: {theme['text']} !important;
         font-family: {selected_font['css']};
     }}
+
+    /* Menyesuaikan warna teks dan elemen di dalam sidebar */
+    [data-testid="stSidebar"] * {{
+        color: {theme['text']} !important;
+    }}
+
     .main-title {{
         text-align: center;
         color: {theme['text']};
