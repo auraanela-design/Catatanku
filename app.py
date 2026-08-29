@@ -184,42 +184,29 @@ st.markdown(f"""
 st.markdown(f"<h1 class='main-title'>{emojis[0]} Laaura's Resume {emojis[1]}</h1>", unsafe_allow_html=True)
 st.markdown(f"<p class='watermark-tag'>✨ Created by Laaura ✨</p>", unsafe_allow_html=True)
 
-# 5. Extraction Functions
-def extract_from_pdf(uploaded_file):
+# 5. Text Extraction Only (No image extraction from PPT/PDF background)
+def extract_text_from_pdf(uploaded_file):
     text = ""
-    images = []
     doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
     for page in doc:
         text += page.get_text() + "\n"
-        for img in page.get_images():
-            xref = img[0]
-            base_image = doc.extract_image(xref)
-            images.append(Image.open(io.BytesIO(base_image["image"])))
-    return text, images
+    return text
 
-def extract_from_docx(uploaded_file):
+def extract_text_from_docx(uploaded_file):
     doc = Document(uploaded_file)
-    text = "\n".join([paragraph.text for paragraph in doc.paragraphs if paragraph.text])
-    images = []
-    for rel in doc.part.rels.values():
-        if "image" in rel.target_ref:
-            images.append(Image.open(io.BytesIO(rel.target_part.blob)))
-    return text, images
+    return "\n".join([paragraph.text for paragraph in doc.paragraphs if paragraph.text])
 
-def extract_from_pptx(uploaded_file):
+def extract_text_from_pptx(uploaded_file):
     prs = Presentation(uploaded_file)
     text = ""
-    images = []
     for slide in prs.slides:
         for shape in slide.shapes:
             if shape.has_text_frame:
                 for paragraph in shape.text_frame.paragraphs:
                     text += paragraph.text + "\n"
-            if shape.shape_type == 13:
-                images.append(Image.open(io.BytesIO(shape.image.blob)))
-    return text, images
+    return text
 
-# 6. Smart Summarizer (GPT-like format)
+# 6. Smart Summarizer (Preserves Formulas & Formatting)
 def generate_summary(text, length_option, format_option):
     sentences = [s.strip() for s in text.split('.') if len(s.strip()) > 10]
     if not sentences:
@@ -245,7 +232,7 @@ def generate_summary(text, length_option, format_option):
         return f"{intro_para}\n\n<b>Poin-Poin Utama:</b>\n{bullet_pts}"
 
 # 7. ReportLab PDF Engine
-def create_custom_pdf(summary_text, selected_images, theme_info, font_info, size_info, pattern_name):
+def create_custom_pdf(summary_text, custom_uploaded_images, theme_info, font_info, size_info, pattern_name):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer, 
@@ -317,13 +304,14 @@ def create_custom_pdf(summary_text, selected_images, theme_info, font_info, size
     
     story.append(summary_table)
 
-    # Selected Images Attached to PDF
-    if selected_images:
+    # Manual Uploaded Images Section
+    if custom_uploaded_images:
         story.append(Spacer(1, 15))
-        story.append(Paragraph(f"<b>{emojis[2]} Lampiran Gambar Terpilih:</b>", ParagraphStyle('ImgHeaderCustom', fontName=font_info['rl_bold'], fontSize=12, textColor=theme_info['pdf_header'])))
+        story.append(Paragraph(f"<b>{emojis[2]} Lampiran Gambar Tambahan:</b>", ParagraphStyle('ImgHeaderCustom', fontName=font_info['rl_bold'], fontSize=12, textColor=theme_info['pdf_header'])))
         story.append(Spacer(1, 8))
         
-        for img in selected_images:
+        for img_file in custom_uploaded_images:
+            img = Image.open(img_file)
             img_buffer = io.BytesIO()
             img.convert('RGB').save(img_buffer, format='JPEG')
             img_buffer.seek(0)
@@ -379,85 +367,74 @@ def create_custom_pdf(summary_text, selected_images, theme_info, font_info, size
     return buffer
 
 # 8. Interactive App Workflow
-uploaded_file = st.file_uploader(
-    f"{emojis[3]} Unggah dokumen kamu (PDF, PPTX, atau DOCX):", 
-    type=["pdf", "pptx", "docx"]
-)
+col1, col2 = st.columns([2, 1])
+
+with col1:
+    uploaded_file = st.file_uploader(
+        f"{emojis[3]} Unggah dokumen kamu (PDF, PPTX, atau DOCX):", 
+        type=["pdf", "pptx", "docx"]
+    )
+
+with col2:
+    uploaded_images = st.file_uploader(
+        f"{emojis[2]} Upload Gambar Sendiri (Optional):", 
+        type=["png", "jpg", "jpeg"],
+        accept_multiple_files=True
+    )
 
 if uploaded_file is not None:
     file_type = uploaded_file.name.split('.')[-1].lower()
     
-    if 'raw_text' not in st.session_state or st.session_state.get('file_name') != uploaded_file.name:
-        with st.spinner(f"Mengekstrak file... {emojis[4]}"):
-            if file_type == "pdf":
-                raw_text, images = extract_from_pdf(uploaded_file)
-            elif file_type == "docx":
-                raw_text, images = extract_from_docx(uploaded_file)
-            elif file_type == "pptx":
-                raw_text, images = extract_from_pptx(uploaded_file)
-            
-            st.session_state['raw_text'] = raw_text
-            st.session_state['all_images'] = images
-            st.session_state['file_name'] = uploaded_file.name
-
-    # Image Selector Component
-    all_images = st.session_state.get('all_images', [])
-    selected_images = []
-    
-    if all_images:
-        st.markdown(f"### {emojis[2]} Pilih Gambar untuk Rangkuman ({len(all_images)} Gambar Ditemukan)")
-        st.caption("Centang gambar penting (grafik, kurva, komoditas) dan abaikan gambar dekorasi/background:")
-        
-        cols = st.columns(min(3, len(all_images)))
-        for idx, img in enumerate(all_images):
-            with cols[idx % 3]:
-                st.image(img, use_container_width=True)
-                is_checked = st.checkbox(f"Sertakan Gambar {idx+1}", key=f"img_chk_{idx}")
-                if is_checked:
-                    selected_images.append(img)
-                    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
     if st.button("✨ Buat Rangkuman Custom"):
-        if st.session_state['raw_text'].strip():
-            st.session_state['summary'] = generate_summary(
-                st.session_state['raw_text'], 
-                summary_length, 
-                summary_format
-            )
-            st.session_state['selected_images'] = selected_images
-        else:
-            st.warning("Tidak ditemukan teks yang dapat dibaca dari dokumen ini.")
+        with st.spinner(f"Membaca dan merangkum dokumen kamu... {emojis[4]}"):
+            if file_type == "pdf":
+                raw_text = extract_text_from_pdf(uploaded_file)
+            elif file_type == "docx":
+                raw_text = extract_text_from_docx(uploaded_file)
+            elif file_type == "pptx":
+                raw_text = extract_text_from_pptx(uploaded_file)
+
+            if raw_text.strip():
+                st.session_state['summary'] = generate_summary(
+                    raw_text, 
+                    summary_length, 
+                    summary_format
+                )
+                st.session_state['file_name'] = uploaded_file.name
+            else:
+                st.warning("Tidak ditemukan teks yang dapat dibaca dari dokumen ini.")
 
 if 'summary' in st.session_state:
     summary = st.session_state['summary']
-    selected_imgs = st.session_state.get('selected_images', [])
     
     st.markdown("---")
     st.markdown(f"### {emojis[0]} Preview Lembar Rangkuman ({paper_style})")
     
-    # Live Paper Preview
+    # Live Paper Preview dengan Dukungan Rumus LaTeX & Math
     st.markdown(f"""
         <div class="preview-paper">
             <h2 style="text-align: center; color: {theme['text']}; margin-top: 0;">{emojis[0]} Laaura's Resume {emojis[1]}</h2>
             <p style="text-align: center; color: #777; font-weight: bold; margin-bottom: 25px;">✨ Created by Laaura ✨</p>
-            <p style="white-space: pre-line;">{summary}</p>
         </div>
     """, unsafe_allow_html=True)
     
-    if selected_imgs:
-        st.markdown(f"#### {emojis[2]} Lampiran Gambar Terpilih ({len(selected_imgs)})")
-        cols_sel = st.columns(min(3, len(selected_imgs)))
-        for idx, img in enumerate(selected_imgs):
-            with cols_sel[idx % 3]:
-                st.image(img, caption=f"Lampiran {idx+1}", use_container_width=True)
+    # Render Rangkuman & Rumus Matematika (jika ada)
+    st.write(summary)
+    
+    # Preview Gambar yang Diupload Sendiri
+    if uploaded_images:
+        st.markdown(f"#### {emojis[2]} Lampiran Gambar Tambahan ({len(uploaded_images)})")
+        cols_img = st.columns(min(3, len(uploaded_images)))
+        for idx, img_file in enumerate(uploaded_images):
+            with cols_img[idx % 3]:
+                st.image(img_file, caption=f"Lampiran {idx+1}", use_container_width=True)
                 
     st.markdown("<br>", unsafe_allow_html=True)
     
     # Download Button
     pdf_bytes = create_custom_pdf(
         summary, 
-        selected_imgs, 
+        uploaded_images, 
         theme, 
         selected_font, 
         selected_size, 
