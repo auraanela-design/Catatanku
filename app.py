@@ -11,7 +11,7 @@ from reportlab.lib import colors
 
 # 1. Konfigurasi Halaman & Tema Cute
 st.set_page_config(
-    page_title="Rangkuman Cute Nela Aura",
+    page_title="Laaura’s Study Resume",
     page_icon="🌸",
     layout="wide"
 )
