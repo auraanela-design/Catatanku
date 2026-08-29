@@ -150,19 +150,19 @@ st.markdown(
     <style>
 
     .stApp {{
-        background-color: {theme["card"]};
+        background-color: {theme['card']};
     }}
 
     [data-testid="stSidebar"] {{
-        background-color: {theme["bg"]};
+        background-color: {theme['bg']};
     }}
 
     h1, h2, h3 {{
-        color: {theme["text"]} !important;
+        color: {theme['text']} !important;
     }}
 
     .stButton > button {{
-        background-color: {theme["primary"]} !important;
+        background-color: {theme['primary']} !important;
         color: white !important;
         border: none !important;
         border-radius: 12px !important;
@@ -173,9 +173,9 @@ st.markdown(
         display: inline-block;
         padding: 5px 13px;
         border-radius: 20px;
-        background-color: {theme["bg"]};
-        border: 1px solid {theme["border"]};
-        color: {theme["text"]};
+        background-color: {theme['bg']};
+        border: 1px solid {theme['border']};
+        color: {theme['text']};
         font-weight: 600;
         margin-bottom: 8px;
     }}
@@ -240,10 +240,7 @@ def pdf_to_images(pdf_bytes):
 # ============================================================
 # IMAGE → DATA URI
 #
-# INI YANG MEMBUAT SLIDE BISA DIMASUKKAN
-# KE DALAM CANVAS SEBAGAI FABRIC IMAGE OBJECT.
-#
-# Kita TIDAK menggunakan background_image.
+# Slide dimasukkan ke canvas sebagai Fabric IMAGE OBJECT.
 # ============================================================
 
 def image_to_data_uri(image):
@@ -290,15 +287,6 @@ def get_canvas_size(image):
 
 # ============================================================
 # CREATE INITIAL CANVAS
-#
-# SLIDE = IMAGE OBJECT
-# CORETAAN = OBJECT LAIN DI ATASNYA
-#
-# Image dibuat:
-# - selectable: false
-# - evented: false
-#
-# sehingga slide tidak bisa ikut terseret.
 # ============================================================
 
 def create_initial_canvas(
@@ -322,7 +310,6 @@ def create_initial_canvas(
 
     background_object = {
         "type": "image",
-
         "version": "4.4.0",
 
         "originX": "left",
@@ -338,9 +325,7 @@ def create_initial_canvas(
         "scaleY": 1,
 
         "angle": 0,
-
         "opacity": 1,
-
         "visible": True,
 
         "selectable": False,
@@ -358,8 +343,6 @@ def create_initial_canvas(
                 [],
             )
 
-            # Hapus image object lama
-            # kalau ternyata tersimpan.
             drawing_objects = [
                 obj
                 for obj in objects
@@ -386,9 +369,6 @@ def create_initial_canvas(
 
 # ============================================================
 # REMOVE BACKGROUND IMAGE FROM SAVED DRAWING
-#
-# Supaya yang disimpan sebagai annotation
-# hanya coretan/text/shape.
 # ============================================================
 
 def get_annotation_only(canvas_json):
@@ -435,7 +415,6 @@ def render_annotations(
         [],
     )
 
-    # Data annotation berasal dari canvas 900 px.
     canvas_width = annotation_data.get(
         "width",
         900,
@@ -1091,14 +1070,14 @@ def upload_to_drive(
 st.markdown(
     f"""
     <div class="study-badge">
-        {theme["main"]} My Personal Study Space
+        {theme['main']} My Personal Study Space
     </div>
     """,
     unsafe_allow_html=True,
 )
 
 st.title(
-    f"𐙚 Slide & Scribble {theme["main"]}"
+    f"𐙚 Slide & Scribble {theme['main']}"
 )
 
 st.caption(
@@ -1116,7 +1095,7 @@ with st.sidebar:
     st.divider()
 
     st.header(
-        f"{theme["file"]} Materi Kuliah"
+        f"{theme['file']} Materi Kuliah"
     )
 
     uploaded_file = st.file_uploader(
@@ -1167,7 +1146,7 @@ with st.sidebar:
     st.divider()
 
     st.header(
-        f"{theme["draw"]} Drawing Tools"
+        f"{theme['draw']} Drawing Tools"
     )
 
     tool_options = {
@@ -1188,7 +1167,6 @@ with st.sidebar:
     drawing_mode = tool_options[
         selected_tool
     ]
-
 
     if drawing_mode == "freedraw":
 
@@ -1323,10 +1301,10 @@ if not st.session_state.sas_slides:
 
     st.info(
         f"""
-        {theme["file"]} **Belum ada materi.**
+        {theme['file']} **Belum ada materi.**
 
         Upload PDF dari sidebar untuk mulai
-        menggunakan **Slide & Scribble** {theme["sub"]}.
+        menggunakan **Slide & Scribble** {theme['sub']}.
         """
     )
 
@@ -1419,7 +1397,7 @@ current_slide = (
 
 
 st.markdown(
-    f"### {theme["sub"]} Slide {slide_index + 1} / {total_slides}"
+    f"### {theme['sub']} Slide {slide_index + 1} / {total_slides}"
 )
 
 
@@ -1439,7 +1417,7 @@ editor_col, notes_col = st.columns(
 with editor_col:
 
     st.markdown(
-        f"#### 🖼️ Edit langsung di slide {theme["draw"]}"
+        f"#### 🖼️ Edit langsung di slide {theme['draw']}"
     )
 
     canvas_width, canvas_height = (
@@ -1457,15 +1435,7 @@ with editor_col:
 
 
     # --------------------------------------------------------
-    # IMPORTANT:
-    #
-    # TIDAK ADA:
-    #
-    # background_image=...
-    #
-    # Jadi error image_to_url() tidak dipanggil.
-    #
-    # Slide dimasukkan sebagai Fabric IMAGE OBJECT.
+    # SLIDE DIMASUKKAN SEBAGAI FABRIC IMAGE OBJECT
     # --------------------------------------------------------
 
     initial_canvas = create_initial_canvas(
@@ -1655,7 +1625,7 @@ with editor_col:
 with notes_col:
 
     st.subheader(
-        f"{theme["note"]} Mini Notes"
+        f"{theme['note']} Mini Notes"
     )
 
     existing_mini = (
@@ -1722,7 +1692,7 @@ with notes_col:
 st.divider()
 
 st.subheader(
-    f"📤 Simpan Materi {theme["sub"]}"
+    f"📤 Simpan Materi {theme['sub']}"
 )
 
 pdf_col, drive_col = st.columns(2)
@@ -1763,7 +1733,7 @@ with pdf_col:
 with drive_col:
 
     if st.button(
-        f"{theme["cloud"]} Simpan ke Google Drive",
+        f"{theme['cloud']} Simpan ke Google Drive",
         key="sas_save_drive_v3",
         use_container_width=True,
     ):
