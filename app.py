@@ -1,6 +1,7 @@
 import io
 import copy
 import html
+import base64
 
 import fitz
 import streamlit as st
@@ -206,11 +207,17 @@ def calculate_canvas_size(image, zoom):
 
 
 # ============================================================
-# RESIZE IMAGE
+# RESIZE & CONVERT IMAGE TO SAFE PIL
 # ============================================================
 
-def resize_image(image, width, height):
-    return image.resize((width, height), Image.Resampling.LANCZOS)
+def resize_and_convert_image(image, width, height):
+    resized = image.resize((width, height), Image.Resampling.LANCZOS)
+    
+    # Konversi ke PNG bytes lalu buat PIL Image baru agar kompatibel 100%
+    buf = io.BytesIO()
+    resized.save(buf, format="PNG")
+    buf.seek(0)
+    return Image.open(buf)
 
 
 # ============================================================
@@ -697,10 +704,10 @@ with editor_col:
     st.markdown(f"#### 🖼️ Editor {theme['draw']}")
     st.caption(f"Ukuran tampilan: **{canvas_width} × {canvas_height}px**")
 
-    # Background slide
-    background = resize_image(current_slide, canvas_width, canvas_height)
+    # Ambil background image & pastikan terkonversi dengan aman
+    background = resize_and_convert_image(current_slide, canvas_width, canvas_height)
 
-    # Key canvas yang unik agar tidak blank
+    # Key canvas unik
     canvas_key = f"canvas_{slide_index}_{st.session_state.sas_canvas_version}"
     initial_drawing = st.session_state.sas_drawings.get(slide_index)
 
