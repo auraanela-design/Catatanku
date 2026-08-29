@@ -11,8 +11,8 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
-# Config Halaman & Judul Tab Browser
-st.set_page_config(page_title="𐙚 Slide & Scribble", page_icon="📝", layout="wide")
+# Config Halaman awal
+st.set_page_config(page_title="𐙚 Slide & Scribble", page_icon="🎀", layout="wide")
 
 # Inisialisasi Session State
 if "slides_images" not in st.session_state:
@@ -21,6 +21,79 @@ if "slide_notes" not in st.session_state:
     st.session_state.slide_notes = {}
 if "annotated_slides" not in st.session_state:
     st.session_state.annotated_slides = {}
+if "mini_notes" not in st.session_state:
+    st.session_state.mini_notes = {}
+
+# --- SISTEM TEMA / THEMES ---
+with st.sidebar:
+    st.header("🎨 Pilih Tema Tampilan")
+    selected_theme = st.selectbox(
+        "Suasana Tampilan:",
+        ["🎀 Coquette Soft", "☁️ Langit & Awan", "🍓 Buah-Buahan", "🌿 Sage Minimalis"]
+    )
+
+# Definisi CSS Warna per Tema
+theme_styles = {
+    "🎀 Coquette Soft": {
+        "bg_sidebar": "#FFF0F3",
+        "primary": "#FFB7C5",
+        "text_header": "#800926",
+        "card_bg": "#FFF8F9",
+        "border": "#FFCCD5"
+    },
+    "☁️ Langit & Awan": {
+        "bg_sidebar": "#F0F8FF",
+        "primary": "#87CEEB",
+        "text_header": "#1E3D59",
+        "card_bg": "#F9FCFF",
+        "border": "#B0E0E6"
+    },
+    "🍓 Buah-Buahan": {
+        "bg_sidebar": "#FFF3E0",
+        "primary": "#FF8A65",
+        "text_header": "#D84315",
+        "card_bg": "#FFF9F5",
+        "border": "#FFCCBC"
+    },
+    "🌿 Sage Minimalis": {
+        "bg_sidebar": "#F2F5F3",
+        "primary": "#87A96B",
+        "text_header": "#2E4A3B",
+        "card_bg": "#F9FAF9",
+        "border": "#C9D6CE"
+    }
+}
+
+t = theme_styles[selected_theme]
+
+# Apply Style CSS Dinamis
+st.markdown(f"""
+    <style>
+        .stApp {{
+            background-color: {t['card_bg']};
+        }}
+        [data-testid="stSidebar"] {{
+            background-color: {t['bg_sidebar']};
+        }}
+        h1, h2, h3 {{
+            color: {t['text_header']} !important;
+        }}
+        .stButton>button {{
+            background-color: {t['primary']} !important;
+            color: white !important;
+            border-radius: 12px !important;
+            border: none !important;
+            font-weight: bold;
+        }}
+        .mini-note-box {{
+            background-color: {t['bg_sidebar']};
+            border-left: 5px solid {t['primary']};
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }}
+    </style>
+""", unsafe_allow_html=True)
 
 # Fungsi Konversi PDF ke Gambar
 def convert_pdf_to_images(pdf_bytes):
@@ -54,11 +127,17 @@ def generate_exported_pdf():
         story.append(Spacer(1, 10))
         
         note_text = st.session_state.slide_notes.get(idx, "").strip()
+        mini_note = st.session_state.mini_notes.get(idx, "").strip()
+        
+        if mini_note:
+            story.append(Paragraph(f"<b>📌 Mini Notes / Istilah Penting:</b><br/>{mini_note}", note_style))
+            story.append(Spacer(1, 5))
+
         if note_text:
-            story.append(Paragraph("<b>Catatan:</b>", styles['Bold']))
+            story.append(Paragraph("<b>Catatan Utuh:</b>", styles['Bold']))
             for line in note_text.split("\n"):
                 story.append(Paragraph(line, note_style))
-        else:
+        elif not mini_note:
             story.append(Paragraph("<i>Tidak ada catatan.</i>", note_style))
             
         story.append(PageBreak())
@@ -105,7 +184,7 @@ def upload_to_gdrive(file_bytes, filename="Hasil_Edit_Slide.pdf"):
 
 # --- INTERFACE UTAMA ---
 st.title("𐙚 Slide & Scribble")
-st.caption("Unggah materi kuliah (PDF), corat-coret slide, tambah catatan, dan unduh/simpan hasilnya.")
+st.caption("Unggah materi kuliah (PDF), corat-coret slide, catat poin penting, dan unduh/simpan hasilnya.")
 
 # Sidebar Pengaturan
 with st.sidebar:
@@ -119,12 +198,12 @@ with st.sidebar:
                 st.session_state.slides_images = convert_pdf_to_images(file_bytes)
                 st.session_state.slide_notes = {}
                 st.session_state.annotated_slides = {}
+                st.session_state.mini_notes = {}
                 st.success(f"Berhasil memuat {len(st.session_state.slides_images)} slide!")
 
     st.divider()
     st.header("🎨 Alat Coret-Coret")
     
-    # Mode Gambar versi Bahasa Indonesia
     mode_indo_map = {
         "✏️ Coret Bebas (Pensil)": "freedraw",
         "📏 Garis Lurus": "line",
@@ -135,16 +214,14 @@ with st.sidebar:
     selected_mode_label = st.selectbox("Mode Alat:", list(mode_indo_map.keys()))
     drawing_mode = mode_indo_map[selected_mode_label]
     
-    # Pilihan Warna Cepat
     preset_color = st.radio(
         "Pilih Alat & Warna:",
         ["🖍️ Stabilo Kuning", "🔴 Merah", "🔵 Biru", "🟢 Hijau", "⚫ Hitam", "🎨 Warna Kustom"],
         index=0
     )
 
-    # Logika Warna & Transparansi Highlighter
     if preset_color == "🖍️ Stabilo Kuning":
-        stroke_color = "rgba(255, 235, 59, 0.4)"  # Kuning stabilo transparan
+        stroke_color = "rgba(255, 235, 59, 0.4)"
         default_stroke_width = 16
     elif preset_color == "🎨 Warna Kustom":
         stroke_color = st.color_picker("Pilih Warna Bebas:", "#FF0000")
@@ -203,12 +280,22 @@ if st.session_state.slides_images:
             st.session_state.annotated_slides[slide_num] = final_slide
 
     with col_notes:
-        st.subheader("📌 Catatan Slide")
+        st.subheader("📌 Mini Notes (Poin Penting/Rumus)")
+        current_mini = st.session_state.mini_notes.get(slide_num, "")
+        updated_mini = st.text_input(
+            "Tulis kata kunci/pertanyaan singkat:",
+            value=current_mini,
+            key=f"mini_{slide_num}",
+            placeholder="Contoh: Definisikan istilah X / Rumus Y"
+        )
+        st.session_state.mini_notes[slide_num] = updated_mini
+        
+        st.subheader("📝 Catatan Utama Slide")
         current_note = st.session_state.slide_notes.get(slide_num, "")
         updated_note = st.text_area(
-            "Tulis catatan penjelas di sini:", 
+            "Tulis penjelasan materi di sini:", 
             value=current_note, 
-            height=300,
+            height=250,
             key=f"note_{slide_num}"
         )
         st.session_state.slide_notes[slide_num] = updated_note
