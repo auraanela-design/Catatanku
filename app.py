@@ -1,4 +1,3 @@
-```python
 import io
 import copy
 import html
@@ -1996,4 +1995,3 @@ with drive_col:
             st.error(
                 f"Gagal menyimpan ke Google Drive: {error}"
             )
-```
