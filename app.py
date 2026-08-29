@@ -4,10 +4,8 @@ from docx import Document
 from pptx import Presentation
 from PIL import Image
 import io
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
+import base64
+from weasyprint import HTML
 
 # 1. Konfigurasi Halaman
 st.set_page_config(
@@ -16,7 +14,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. Daftar Tema dengan Full Screen Gradient & Emotikon Spesifik
+# 2. Daftar Tema dengan Full Screen Gradient & Warna PDF Custom
 THEMES = {
     "🩰 Coquette Pink": {
         "gradient": "linear-gradient(135deg, #FFE4E1 0%, #FFC0CB 50%, #E6E6FA 100%)",
@@ -24,7 +22,9 @@ THEMES = {
         "text": "#5C2C3B",
         "accent": "#E899AC",
         "emojis": "🩰 🎀 🕯️ 🦢 🎀",
-        "header_color": colors.HexColor("#D87093")
+        "pdf_bg": "#FFF0F5",
+        "pdf_border": "#FFB6C1",
+        "pdf_header": "#D87093"
     },
     "☁️ Langit Cerah": {
         "gradient": "linear-gradient(135deg, #E0F7FA 0%, #B3E5FC 50%, #E1BEE7 100%)",
@@ -32,7 +32,9 @@ THEMES = {
         "text": "#1F3A52",
         "accent": "#81D4FA",
         "emojis": "☁️ 🌙 🕊️ 💫 🌤️",
-        "header_color": colors.HexColor("#0288D1")
+        "pdf_bg": "#F0F8FF",
+        "pdf_border": "#B0E0E6",
+        "pdf_header": "#0288D1"
     },
     "🍵 Matcha Soft": {
         "gradient": "linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 50%, #C8E6C9 100%)",
@@ -40,7 +42,9 @@ THEMES = {
         "text": "#2D4A27",
         "accent": "#AED581",
         "emojis": "🍵 🍃 🌱 🫖 🧁",
-        "header_color": colors.HexColor("#558B2F")
+        "pdf_bg": "#F4F9F4",
+        "pdf_border": "#C8E6C9",
+        "pdf_header": "#558B2F"
     },
     "🍂 Earth Warm": {
         "gradient": "linear-gradient(135deg, #FDFBF7 0%, #F5E6D3 50%, #E2D1C3 100%)",
@@ -48,7 +52,9 @@ THEMES = {
         "text": "#4A3B32",
         "accent": "#D7B596",
         "emojis": "🍂 ☕ 🧸 🪵 🌾",
-        "header_color": colors.HexColor("#8B5A2B")
+        "pdf_bg": "#FAF0E6",
+        "pdf_border": "#E2D1C3",
+        "pdf_header": "#8B5A2B"
     }
 }
 
@@ -57,18 +63,15 @@ selected_theme_name = st.sidebar.selectbox("🎨 Pilih Tema:", list(THEMES.keys(
 theme = THEMES[selected_theme_name]
 emojis = theme['emojis'].split()
 
-# CSS untuk Full Screen Gradient
+# Styling CSS untuk Streamlit UI
 st.markdown(f"""
     <style>
-    /* Full Page Gradient */
     .stApp {{
         background: {theme['gradient']};
         background-attachment: fixed;
         color: {theme['text']};
         font-family: 'Quicksand', 'Poppins', sans-serif;
     }}
-    
-    /* Title & Watermark Styles */
     .main-title {{
         text-align: center;
         color: {theme['text']};
@@ -86,15 +89,11 @@ st.markdown(f"""
         margin-bottom: 25px;
         opacity: 0.9;
     }}
-    
-    /* Container & Card Styling */
     div[data-testid="stExpander"], div[data-testid="stFileUploader"] {{
         background-color: {theme['card_bg']};
         border-radius: 15px;
         padding: 10px;
     }}
-
-    /* Button Styling */
     .stButton>button {{
         background-color: {theme['accent']} !important;
         color: white !important;
@@ -126,8 +125,7 @@ def extract_from_pdf(uploaded_file):
         for img in page.get_images():
             xref = img[0]
             base_image = doc.extract_image(xref)
-            image_bytes = base_image["image"]
-            images.append(Image.open(io.BytesIO(image_bytes)))
+            images.append(Image.open(io.BytesIO(base_image["image"])))
     return text, images
 
 def extract_from_docx(uploaded_file):
@@ -136,8 +134,7 @@ def extract_from_docx(uploaded_file):
     images = []
     for rel in doc.part.rels.values():
         if "image" in rel.target_ref:
-            img_data = rel.target_part.blob
-            images.append(Image.open(io.BytesIO(img_data)))
+            images.append(Image.open(io.BytesIO(rel.target_part.blob)))
     return text, images
 
 def extract_from_pptx(uploaded_file):
@@ -149,12 +146,11 @@ def extract_from_pptx(uploaded_file):
             if shape.has_text_frame:
                 for paragraph in shape.text_frame.paragraphs:
                     text += paragraph.text + "\n"
-            if shape.shape_type == 13:  # Picture
-                image_bytes = shape.image.blob
-                images.append(Image.open(io.BytesIO(image_bytes)))
+            if shape.shape_type == 13:
+                images.append(Image.open(io.BytesIO(shape.image.blob)))
     return text, images
 
-# 6. Pembuat Rangkuman
+# 6. Generator Rangkuman Teks
 def generate_summary(text, length_option):
     sentences = [s.strip() for s in text.split('.') if len(s.strip()) > 10]
     if not sentences:
@@ -167,71 +163,111 @@ def generate_summary(text, length_option):
     else:
         limit = max(8, int(len(sentences) * 0.75))
         
-    summary = ". ".join(sentences[:limit]) + "."
-    return summary
+    return ". ".join(sentences[:limit]) + "."
 
-# 7. Pembuat PDF Bertema dengan Watermark "Created by Laaura"
-def create_pdf(summary_text, images, theme_info):
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
-    styles = getSampleStyleSheet()
+# 7. Fungsi Generator PDF Estetis Menggunakan HTML & WeasyPrint
+def generate_pdf_weasyprint(summary_text, images, theme_info):
+    img_html_list = []
+    for img in images[:4]:
+        buffered = io.BytesIO()
+        img.convert('RGB').save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+        img_html_list.append(f'<img src="data:image/jpeg;base64,{img_str}" class="summary-img" />')
     
-    title_style = ParagraphStyle(
-        'TitleStyle',
-        parent=styles['Heading1'],
-        fontSize=18,
-        textColor=theme_info['header_color'],
-        alignment=1,
-        spaceAfter=8
-    )
-    
-    author_style = ParagraphStyle(
-        'AuthorStyle',
-        parent=styles['Normal'],
-        fontSize=11,
-        textColor=colors.gray,
-        alignment=1,
-        spaceAfter=20
-    )
-    
-    body_style = ParagraphStyle(
-        'BodyStyle',
-        parent=styles['Normal'],
-        fontSize=10,
-        leading=15,
-        spaceAfter=10
-    )
+    images_container = "".join(img_html_list)
+    paragraphs = "".join([f"<p>{p.strip()}.</p>" for p in summary_text.split('.') if p.strip()])
 
-    story = []
-    
-    # Title & Header
-    story.append(Paragraph(f"{theme_info['emojis']} Laaura's Resume {theme_info['emojis']}", title_style))
-    story.append(Paragraph("<b>Created by Laaura ✨</b>", author_style))
-    story.append(Spacer(1, 10))
-    
-    # Teks Rangkuman
-    for paragraph in summary_text.split('\n'):
-        if paragraph.strip():
-            story.append(Paragraph(paragraph, body_style))
-            story.append(Spacer(1, 6))
-            
-    # Lampiran Gambar
-    if images:
-        story.append(Spacer(1, 10))
-        story.append(Paragraph(f"<b>{emojis[2]} Lampiran Gambar:</b>", body_style))
-        for img in images[:5]:
-            img_buffer = io.BytesIO()
-            img.save(img_buffer, format='PNG')
-            img_buffer.seek(0)
-            rl_img = RLImage(img_buffer, width=280, height=180)
-            story.append(rl_img)
-            story.append(Spacer(1, 10))
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            @page {{
+                size: A4;
+                margin: 15mm 12mm;
+                background-color: {theme_info['pdf_bg']};
+            }}
+            * {{ box-sizing: border-box; }}
+            body {{
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                color: #333333;
+                margin: 0;
+                padding: 0;
+            }}
+            .header-card {{
+                background-color: #ffffff;
+                border: 2px dashed {theme_info['pdf_border']};
+                border-radius: 15px;
+                padding: 20px;
+                text-align: center;
+                margin-bottom: 25px;
+            }}
+            .title {{
+                color: {theme_info['pdf_header']};
+                font-size: 24pt;
+                font-weight: bold;
+                margin: 0 0 5px 0;
+            }}
+            .subtitle {{
+                color: #777777;
+                font-size: 11pt;
+                font-weight: bold;
+                letter-spacing: 1px;
+            }}
+            .content-box {{
+                background-color: #ffffff;
+                border-radius: 12px;
+                padding: 20px;
+                border-left: 6px solid {theme_info['pdf_header']};
+                line-height: 1.6;
+                font-size: 11pt;
+            }}
+            .content-box p {{
+                margin-bottom: 12px;
+            }}
+            .section-title {{
+                color: {theme_info['pdf_header']};
+                font-size: 14pt;
+                margin-top: 25px;
+                margin-bottom: 15px;
+                border-bottom: 2px solid {theme_info['pdf_border']};
+                padding-bottom: 5px;
+            }}
+            .gallery {{
+                text-align: center;
+            }}
+            .summary-img {{
+                width: 45%;
+                max-height: 180px;
+                object-fit: cover;
+                border-radius: 10px;
+                margin: 5px;
+                border: 1px solid #eeeeee;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="header-card">
+            <div class="title">{theme_info['emojis'].split()[0]} Laaura's Resume {theme_info['emojis'].split()[1]}</div>
+            <div class="subtitle">✨ Created by Laaura ✨</div>
+        </div>
 
-    doc.build(story)
-    buffer.seek(0)
-    return buffer
+        <div class="content-box">
+            {paragraphs}
+        </div>
 
-# 8. Antarmuka Utama
+        {f'<div class="section-title">{theme_info["emojis"].split()[2]} Lampiran Visual</div><div class="gallery">' + images_container + '</div>' if img_html_list else ''}
+    </body>
+    </html>
+    """
+    
+    pdf_bytes = io.BytesIO()
+    HTML(string=html_content).write_pdf(pdf_bytes)
+    pdf_bytes.seek(0)
+    return pdf_bytes
+
+# 8. Antarmuka Utama Aplikasi
 st.sidebar.subheader(f"{emojis[2]} Pengaturan Rangkuman")
 summary_length = st.sidebar.radio("Jenis Rangkuman:", ["Singkat", "Sedang", "Panjang"])
 
@@ -257,7 +293,6 @@ if uploaded_file is not None:
         st.markdown(f"### {emojis[0]} Hasil Rangkuman")
         st.write(summary)
         
-        # Galeri Gambar Ekstraksi
         if images:
             st.markdown(f"### {emojis[2]} Galeri Gambar ({len(images)})")
             cols = st.columns(min(3, len(images)))
@@ -265,11 +300,11 @@ if uploaded_file is not None:
                 with cols[idx % 3]:
                     st.image(img, caption=f"Gambar {idx+1}", use_column_width=True)
                     
-        # Tombol Download PDF
-        pdf_bytes = create_pdf(summary, images, theme)
+        # Download PDF
+        pdf_file = generate_pdf_weasyprint(summary, images, theme)
         st.download_button(
             label="✨ Download PDF Rangkuman (Created by Laaura)",
-            data=pdf_bytes,
+            data=pdf_file,
             file_name=f"Laaura_Resume_{uploaded_file.name}.pdf",
             mime="application/pdf"
         )
