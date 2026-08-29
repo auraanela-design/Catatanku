@@ -1,3 +1,4 @@
+```python
 import io
 import copy
 import html
@@ -42,32 +43,21 @@ st.set_page_config(
 # SESSION STATE
 # ============================================================
 
-if "sas_slides" not in st.session_state:
-    st.session_state.sas_slides = []
+DEFAULTS = {
+    "sas_slides": [],
+    "sas_notes": {},
+    "sas_mini_notes": {},
+    "sas_drawings": {},
+    "sas_history": {},
+    "sas_current_slide": 0,
+    "sas_zoom": 70,
+    "sas_canvas_version": 0,
+    "sas_loaded_filename": "",
+}
 
-if "sas_notes" not in st.session_state:
-    st.session_state.sas_notes = {}
-
-if "sas_mini_notes" not in st.session_state:
-    st.session_state.sas_mini_notes = {}
-
-if "sas_drawings" not in st.session_state:
-    st.session_state.sas_drawings = {}
-
-if "sas_history" not in st.session_state:
-    st.session_state.sas_history = {}
-
-if "sas_current_slide" not in st.session_state:
-    st.session_state.sas_current_slide = 0
-
-if "sas_zoom" not in st.session_state:
-    st.session_state.sas_zoom = 70
-
-if "sas_canvas_version" not in st.session_state:
-    st.session_state.sas_canvas_version = 0
-
-if "sas_loaded_filename" not in st.session_state:
-    st.session_state.sas_loaded_filename = ""
+for key, value in DEFAULTS.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
 
 
 # ============================================================
@@ -135,7 +125,7 @@ THEMES = {
 
 
 # ============================================================
-# THEME
+# THEME SELECTOR
 # ============================================================
 
 with st.sidebar:
@@ -145,7 +135,7 @@ with st.sidebar:
     selected_theme = st.selectbox(
         "Suasana tampilan:",
         list(THEMES.keys()),
-        key="sas_theme_selector_v7",
+        key="sas_theme_v8",
     )
 
 theme = THEMES[selected_theme]
@@ -160,24 +150,24 @@ st.markdown(
     <style>
 
     .stApp {{
-        background-color: {theme['card']};
+        background-color: {theme["card"]};
     }}
 
     [data-testid="stSidebar"] {{
-        background-color: {theme['bg']};
+        background-color: {theme["bg"]};
     }}
 
     h1, h2, h3 {{
-        color: {theme['text']} !important;
+        color: {theme["text"]} !important;
     }}
 
     .study-badge {{
         display: inline-block;
         padding: 6px 14px;
         border-radius: 20px;
-        background-color: {theme['bg']};
-        border: 1px solid {theme['border']};
-        color: {theme['text']};
+        background-color: {theme["bg"]};
+        border: 1px solid {theme["border"]};
+        color: {theme["text"]};
         font-weight: 600;
         margin-bottom: 8px;
     }}
@@ -185,11 +175,11 @@ st.markdown(
     .slide-info {{
         padding: 10px 14px;
         border-radius: 12px;
-        background-color: {theme['bg']};
-        border: 1px solid {theme['border']};
+        background-color: {theme["bg"]};
+        border: 1px solid {theme["border"]};
         margin-bottom: 10px;
         text-align: center;
-        color: {theme['text']};
+        color: {theme["text"]};
         font-weight: 600;
     }}
 
@@ -200,7 +190,7 @@ st.markdown(
 
 
 # ============================================================
-# PDF → PIL
+# PDF → IMAGES
 # ============================================================
 
 def pdf_to_images(pdf_bytes):
@@ -217,7 +207,7 @@ def pdf_to_images(pdf_bytes):
         for page in document:
 
             pix = page.get_pixmap(
-                dpi=150,
+                dpi=120,
                 alpha=False,
             )
 
@@ -248,10 +238,12 @@ def calculate_canvas_size(
     zoom,
 ):
 
-    base_width = 900
+    base_width = 850
 
     width = int(
-        base_width * zoom / 100
+        base_width *
+        zoom /
+        100
     )
 
     ratio = (
@@ -260,7 +252,8 @@ def calculate_canvas_size(
     )
 
     height = int(
-        width * ratio
+        width *
+        ratio
     )
 
     return width, height
@@ -270,7 +263,7 @@ def calculate_canvas_size(
 # RESIZE IMAGE
 # ============================================================
 
-def resize_slide(
+def resize_image(
     image,
     width,
     height,
@@ -286,53 +279,54 @@ def resize_slide(
 
 
 # ============================================================
-# CLEAN DRAWING DATA
+# CLEAN DRAWING
 # ============================================================
 
-def clean_drawing(data):
+def clean_drawing(
+    canvas_json,
+    canvas_width,
+    canvas_height,
+):
 
-    if not data:
+    if not canvas_json:
         return None
 
-    cleaned = copy.deepcopy(data)
-
-    objects = cleaned.get(
+    objects = canvas_json.get(
         "objects",
         [],
     )
 
-    # Hanya annotation.
-    cleaned["objects"] = [
-        obj
-        for obj in objects
-        if obj.get("type") != "image"
-    ]
-
-    if not cleaned["objects"]:
+    if not objects:
         return None
 
-    return cleaned
+    cleaned_objects = []
+
+    for obj in objects:
+
+        # Jangan simpan image/background.
+        if obj.get("type") == "image":
+            continue
+
+        cleaned_objects.append(
+            copy.deepcopy(obj)
+        )
+
+    if not cleaned_objects:
+        return None
+
+    return {
+        "version": canvas_json.get(
+            "version",
+            "4.4.0",
+        ),
+        "objects": cleaned_objects,
+        "canvas_width": canvas_width,
+        "canvas_height": canvas_height,
+    }
 
 
 # ============================================================
-# DRAWING EMPTY?
-# ============================================================
-
-def drawing_empty(data):
-
-    if not data:
-        return True
-
-    objects = data.get(
-        "objects",
-        [],
-    )
-
-    return len(objects) == 0
-
-
-# ============================================================
-# RENDER DRAWINGS KE SLIDE
+# RENDER ANNOTATIONS
 # ============================================================
 
 def render_annotations(
@@ -357,11 +351,11 @@ def render_annotations(
 
     canvas_width = drawing.get(
         "canvas_width",
-        900,
+        850,
     )
 
     if not canvas_width:
-        canvas_width = 900
+        canvas_width = 850
 
     scale = (
         result.width /
@@ -380,7 +374,7 @@ def render_annotations(
 
 
     # ========================================================
-    # PATH
+    # LOOP OBJECT
     # ========================================================
 
     for obj in objects:
@@ -389,6 +383,11 @@ def render_annotations(
             "type",
             "",
         )
+
+
+        # ====================================================
+        # FREE DRAW
+        # ====================================================
 
         if obj_type == "path":
 
@@ -404,9 +403,9 @@ def render_annotations(
                 if len(command) < 3:
                     continue
 
-                command_type = command[0]
-
                 try:
+
+                    command_type = command[0]
 
                     if command_type in (
                         "M",
@@ -447,7 +446,7 @@ def render_annotations(
                         )
 
                 except Exception:
-                    continue
+                    pass
 
 
             if len(points) >= 2:
@@ -459,7 +458,7 @@ def render_annotations(
 
                 try:
 
-                    width = int(
+                    stroke_width = int(
                         float(
                             obj.get(
                                 "strokeWidth",
@@ -471,17 +470,17 @@ def render_annotations(
 
                 except Exception:
 
-                    width = 3
+                    stroke_width = 3
 
-                width = max(
+                stroke_width = max(
                     1,
-                    width,
+                    stroke_width,
                 )
 
                 draw.line(
                     points,
                     fill=stroke,
-                    width=width,
+                    width=stroke_width,
                     joint="curve",
                 )
 
@@ -809,7 +808,7 @@ def render_annotations(
 
 
 # ============================================================
-# PDF EXPORT
+# CREATE PDF
 # ============================================================
 
 def create_pdf():
@@ -828,14 +827,14 @@ def create_pdf():
     styles = getSampleStyleSheet()
 
     title_style = ParagraphStyle(
-        "SlideTitle",
+        "SlideTitleV8",
         parent=styles["Heading2"],
         fontSize=14,
         spaceAfter=8,
     )
 
     note_style = ParagraphStyle(
-        "StudyNote",
+        "NoteV8",
         parent=styles["Normal"],
         fontSize=10,
         leading=14,
@@ -859,7 +858,6 @@ def create_pdf():
             slide,
             drawing,
         )
-
 
         image_buffer = io.BytesIO()
 
@@ -887,7 +885,8 @@ def create_pdf():
         )
 
         max_height = (
-            max_width * ratio
+            max_width *
+            ratio
         )
 
 
@@ -898,7 +897,6 @@ def create_pdf():
                 height=max_height,
             )
         )
-
 
         story.append(
             Spacer(
@@ -917,7 +915,6 @@ def create_pdf():
             )
             .strip()
         )
-
 
         note = (
             st.session_state
@@ -1091,7 +1088,7 @@ def upload_to_drive(
 st.markdown(
     f"""
     <div class="study-badge">
-        {theme['main']} My Personal Study Space
+        {theme["main"]} My Personal Study Space
     </div>
     """,
     unsafe_allow_html=True,
@@ -1102,12 +1099,12 @@ st.title(
 )
 
 st.caption(
-    "Upload materi → coret → tulis → buat notes → export."
+    "Upload materi → coret → tulis → notes → export."
 )
 
 
 # ============================================================
-# UPLOAD PDF
+# SIDEBAR — UPLOAD
 # ============================================================
 
 with st.sidebar:
@@ -1121,7 +1118,7 @@ with st.sidebar:
     uploaded_file = st.file_uploader(
         "Upload PDF",
         type=["pdf"],
-        key="sas_pdf_upload_v7",
+        key="sas_upload_v8",
     )
 
 
@@ -1129,65 +1126,63 @@ with st.sidebar:
 
         if st.button(
             "📥 Muat Materi",
-            key="sas_load_pdf_v7",
+            key="sas_load_v8",
             use_container_width=True,
         ):
 
-            with st.spinner(
-                "Membaca materi..."
-            ):
+            try:
 
-                try:
+                with st.spinner(
+                    "Membaca materi..."
+                ):
 
                     slides = pdf_to_images(
                         uploaded_file.getvalue()
                     )
 
-
-                    if not slides:
-
-                        st.error(
-                            "PDF tidak memiliki halaman."
-                        )
-
-                    else:
-
-                        st.session_state.sas_slides = slides
-
-                        st.session_state.sas_notes = {}
-
-                        st.session_state.sas_mini_notes = {}
-
-                        st.session_state.sas_drawings = {}
-
-                        st.session_state.sas_history = {}
-
-                        st.session_state.sas_current_slide = 0
-
-                        st.session_state.sas_zoom = 70
-
-                        st.session_state.sas_canvas_version += 1
-
-                        st.session_state.sas_loaded_filename = (
-                            uploaded_file.name
-                        )
-
-                        st.success(
-                            f"{len(slides)} slide berhasil dimuat! 🎉"
-                        )
-
-                        st.rerun()
-
-
-                except Exception as error:
+                if not slides:
 
                     st.error(
-                        f"Gagal membaca PDF: {error}"
+                        "PDF tidak memiliki halaman."
                     )
+
+                else:
+
+                    st.session_state.sas_slides = slides
+
+                    st.session_state.sas_notes = {}
+
+                    st.session_state.sas_mini_notes = {}
+
+                    st.session_state.sas_drawings = {}
+
+                    st.session_state.sas_history = {}
+
+                    st.session_state.sas_current_slide = 0
+
+                    st.session_state.sas_zoom = 70
+
+                    st.session_state.sas_canvas_version += 1
+
+                    st.session_state.sas_loaded_filename = (
+                        uploaded_file.name
+                    )
+
+                    st.success(
+                        f"{len(slides)} slide berhasil dimuat! 🎉"
+                    )
+
+                    st.rerun()
+
+            except Exception as error:
+
+                st.error(
+                    f"Gagal membaca PDF: {error}"
+                )
 
 
 # ============================================================
-# DRAWING TOOL
+# SIDEBAR — TOOLS
 # ============================================================
 
 with st.sidebar:
@@ -1199,7 +1194,25 @@ with st.sidebar:
     )
 
 
-    tools = {
+    tool_list = [
+        "✏️ Pen",
+        "🖍️ Stabilo",
+        "🔤 Text",
+        "📏 Line",
+        "🔲 Rectangle",
+        "⚪ Circle",
+        "✋ Select",
+    ]
+
+
+    selected_tool = st.selectbox(
+        "Pilih alat:",
+        tool_list,
+        key="sas_tool_v8",
+    )
+
+
+    tool_map = {
 
         "✏️ Pen": "freedraw",
 
@@ -1214,46 +1227,30 @@ with st.sidebar:
         "⚪ Circle": "circle",
 
         "✋ Select": "transform",
-
     }
 
 
-    selected_tool = st.selectbox(
-        "Alat:",
-        list(tools.keys()),
-        key="sas_drawing_tool_v7",
-    )
-
-
-    drawing_mode = tools[
+    drawing_mode = tool_map[
         selected_tool
     ]
 
 
-    # ========================================================
-    # NORMAL PEN
-    # ========================================================
-
     if selected_tool == "✏️ Pen":
 
         stroke_color = st.color_picker(
-            "Warna pen:",
+            "Warna:",
             "#FF0000",
-            key="sas_pen_color_v7",
+            key="sas_pen_color_v8",
         )
 
         stroke_width = st.slider(
-            "Ukuran pen:",
+            "Ukuran:",
             1,
             15,
             3,
-            key="sas_pen_width_v7",
+            key="sas_pen_width_v8",
         )
 
-
-    # ========================================================
-    # HIGHLIGHTER
-    # ========================================================
 
     elif selected_tool == "🖍️ Stabilo":
 
@@ -1265,7 +1262,7 @@ with st.sidebar:
                 "Hijau",
                 "Biru",
             ],
-            key="sas_highlighter_v7",
+            key="sas_highlighter_v8",
         )
 
 
@@ -1291,12 +1288,13 @@ with st.sidebar:
             ]
         )
 
+
         stroke_width = st.slider(
-            "Ukuran stabilo:",
+            "Ukuran:",
             8,
             30,
             18,
-            key="sas_highlighter_width_v7",
+            key="sas_highlighter_width_v8",
         )
 
 
@@ -1305,7 +1303,7 @@ with st.sidebar:
         stroke_color = st.color_picker(
             "Warna:",
             "#FF0000",
-            key="sas_shape_color_v7",
+            key="sas_shape_color_v8",
         )
 
         stroke_width = st.slider(
@@ -1313,12 +1311,12 @@ with st.sidebar:
             1,
             15,
             3,
-            key="sas_shape_width_v7",
+            key="sas_shape_width_v8",
         )
 
 
 # ============================================================
-# EMPTY STATE
+# EMPTY
 # ============================================================
 
 if not st.session_state.sas_slides:
@@ -1327,8 +1325,8 @@ if not st.session_state.sas_slides:
         f"""
         {theme['file']} **Belum ada materi.**
 
-        Upload PDF dari sidebar untuk mulai menggunakan
-        **Slide & Scribble** {theme['sub']}.
+        Upload PDF dari sidebar untuk mulai
+        menggunakan **Slide & Scribble** {theme['sub']}.
         """
     )
 
@@ -1344,20 +1342,14 @@ total_slides = len(
 )
 
 
-if (
-    st.session_state.sas_current_slide
-    >= total_slides
-):
+if st.session_state.sas_current_slide >= total_slides:
 
     st.session_state.sas_current_slide = (
         total_slides - 1
     )
 
 
-if (
-    st.session_state.sas_current_slide
-    < 0
-):
+if st.session_state.sas_current_slide < 0:
 
     st.session_state.sas_current_slide = 0
 
@@ -1371,16 +1363,16 @@ slide_index = (
 # NAVIGATION
 # ============================================================
 
-nav1, nav2, nav3 = st.columns(
+nav_left, nav_center, nav_right = st.columns(
     [1, 5, 1]
 )
 
 
-with nav1:
+with nav_left:
 
     if st.button(
         "⬅️",
-        key="sas_previous_v7",
+        key="sas_prev_v8",
         use_container_width=True,
         disabled=(
             slide_index == 0
@@ -1389,20 +1381,19 @@ with nav1:
 
         st.session_state.sas_current_slide -= 1
 
-        # Canvas dibuat ulang untuk slide baru.
         st.session_state.sas_canvas_version += 1
 
         st.rerun()
 
 
-with nav2:
+with nav_center:
 
     selected_slide = st.slider(
         "Slide",
         1,
         total_slides,
         slide_index + 1,
-        key="sas_slide_navigation_v7",
+        key="sas_slide_nav_v8",
     )
 
 
@@ -1420,15 +1411,14 @@ with nav2:
         st.rerun()
 
 
-with nav3:
+with nav_right:
 
     if st.button(
         "➡️",
-        key="sas_next_v7",
+        key="sas_next_v8",
         use_container_width=True,
         disabled=(
-            slide_index
-            >= total_slides - 1
+            slide_index >= total_slides - 1
         ),
     ):
 
@@ -1454,7 +1444,8 @@ current_slide = (
 st.markdown(
     f"""
     <div class="slide-info">
-        {theme['sub']} Slide {slide_index + 1} / {total_slides}
+        {theme['sub']}
+        Slide {slide_index + 1} / {total_slides}
     </div>
     """,
     unsafe_allow_html=True,
@@ -1465,16 +1456,16 @@ st.markdown(
 # ZOOM
 # ============================================================
 
-zoom1, zoom2, zoom3 = st.columns(
+zoom_left, zoom_center, zoom_right = st.columns(
     [1, 4, 1]
 )
 
 
-with zoom1:
+with zoom_left:
 
     if st.button(
         "➖",
-        key="sas_zoom_minus_v7",
+        key="sas_zoom_minus_v8",
         use_container_width=True,
     ):
 
@@ -1488,7 +1479,7 @@ with zoom1:
         st.rerun()
 
 
-with zoom2:
+with zoom_center:
 
     zoom_value = st.slider(
         "🔍 Ukuran Slide",
@@ -1497,7 +1488,7 @@ with zoom2:
         value=st.session_state.sas_zoom,
         step=10,
         format="%d%%",
-        key="sas_zoom_slider_v7",
+        key="sas_zoom_v8",
     )
 
 
@@ -1510,11 +1501,11 @@ with zoom2:
         st.rerun()
 
 
-with zoom3:
+with zoom_right:
 
     if st.button(
         "➕",
-        key="sas_zoom_plus_v7",
+        key="sas_zoom_plus_v8",
         use_container_width=True,
     ):
 
@@ -1529,7 +1520,7 @@ with zoom3:
 
 
 # ============================================================
-# SIZE
+# CANVAS SIZE
 # ============================================================
 
 canvas_width, canvas_height = (
@@ -1541,7 +1532,7 @@ canvas_width, canvas_height = (
 
 
 # ============================================================
-# EDITOR / NOTES
+# EDITOR + NOTES
 # ============================================================
 
 editor_col, notes_col = st.columns(
@@ -1550,13 +1541,13 @@ editor_col, notes_col = st.columns(
 
 
 # ============================================================
-# SLIDE EDITOR
+# EDITOR
 # ============================================================
 
 with editor_col:
 
     st.markdown(
-        f"#### 🖼️ Slide {slide_index + 1} {theme['draw']}"
+        f"#### 🖼️ Editor {theme['draw']}"
     )
 
 
@@ -1567,10 +1558,10 @@ with editor_col:
 
 
     # ========================================================
-    # RESIZE BACKGROUND
+    # BACKGROUND
     # ========================================================
 
-    canvas_background = resize_slide(
+    background = resize_image(
         current_slide,
         canvas_width,
         canvas_height,
@@ -1578,26 +1569,11 @@ with editor_col:
 
 
     # ========================================================
-    # CURRENT DRAWING
-    # ========================================================
-
-    current_drawing = (
-        st.session_state
-        .sas_drawings
-        .get(slide_index)
-    )
-
-
-    # ========================================================
-    # IMPORTANT
-    #
-    # Background hanya berupa PIL image.
-    # Tidak ada image object Fabric.
-    # Tidak ada initial_drawing image object.
+    # CANVAS KEY
     # ========================================================
 
     canvas_key = (
-        "sas_canvas_v7_"
+        "sas_draw_canvas_v8_"
         f"{slide_index}_"
         f"{st.session_state.sas_canvas_version}"
     )
@@ -1605,6 +1581,15 @@ with editor_col:
 
     # ========================================================
     # CANVAS
+    #
+    # INI SATU-SATUNYA TEMPAT background_image DIGUNAKAN.
+    #
+    # Tidak menggunakan:
+    # - initial_drawing
+    # - Fabric image object
+    # - image_to_url manual
+    #
+    # Jadi jauh lebih sederhana.
     # ========================================================
 
     canvas_result = st_canvas(
@@ -1617,9 +1602,7 @@ with editor_col:
 
         background_color="white",
 
-        background_image=canvas_background,
-
-        update_streamlit=True,
+        background_image=background,
 
         height=canvas_height,
 
@@ -1628,6 +1611,8 @@ with editor_col:
         drawing_mode=drawing_mode,
 
         display_toolbar=True,
+
+        update_streamlit=True,
 
         key=canvas_key,
     )
@@ -1639,30 +1624,18 @@ with editor_col:
 
     if canvas_result is not None:
 
-        canvas_json = canvas_result.json_data
+        canvas_json = (
+            canvas_result.json_data
+        )
 
 
         if canvas_json is not None:
 
             new_drawing = clean_drawing(
-                canvas_json
+                canvas_json,
+                canvas_width,
+                canvas_height,
             )
-
-
-            # =================================================
-            # Tambahkan ukuran canvas supaya koordinat
-            # bisa dikonversi saat export.
-            # =================================================
-
-            if new_drawing:
-
-                new_drawing[
-                    "canvas_width"
-                ] = canvas_width
-
-                new_drawing[
-                    "canvas_height"
-                ] = canvas_height
 
 
             old_drawing = (
@@ -1672,14 +1645,12 @@ with editor_col:
             )
 
 
-            # =================================================
-            # Jangan masukkan perubahan kosong
-            # berulang-ulang ke history.
-            # =================================================
-
             if new_drawing != old_drawing:
 
-                if old_drawing:
+                # Jangan membuat history
+                # ketika old drawing kosong.
+
+                if old_drawing is not None:
 
                     history = (
                         st.session_state
@@ -1690,15 +1661,12 @@ with editor_col:
                         )
                     )
 
-
                     history.append(
                         copy.deepcopy(
                             old_drawing
                         )
                     )
 
-
-                    # Maksimal 30 undo.
 
                     if len(history) > 30:
 
@@ -1711,7 +1679,7 @@ with editor_col:
 
 
     # ========================================================
-    # ACTION BUTTONS
+    # ACTIONS
     # ========================================================
 
     st.write("")
@@ -1730,7 +1698,7 @@ with editor_col:
 
         if st.button(
             "↩️ Undo",
-            key="sas_undo_v7",
+            key="sas_undo_v8",
             use_container_width=True,
         ):
 
@@ -1754,7 +1722,6 @@ with editor_col:
                 ] = previous
 
 
-                # Paksa canvas dibuat ulang.
                 st.session_state.sas_canvas_version += 1
 
                 st.rerun()
@@ -1762,7 +1729,7 @@ with editor_col:
             else:
 
                 st.toast(
-                    "Belum ada yang bisa di-undo."
+                    "Belum ada coretan sebelumnya."
                 )
 
 
@@ -1774,7 +1741,7 @@ with editor_col:
 
         if st.button(
             "🗑️ Hapus Semua",
-            key="sas_clear_v7",
+            key="sas_clear_v8",
             use_container_width=True,
         ):
 
@@ -1785,7 +1752,7 @@ with editor_col:
             )
 
 
-            if existing:
+            if existing is not None:
 
                 history = (
                     st.session_state
@@ -1810,7 +1777,7 @@ with editor_col:
 
 
             # =================================================
-            # BENAR-BENAR HAPUS.
+            # BENAR-BENAR KOSONGKAN
             # =================================================
 
             st.session_state.sas_drawings[
@@ -1818,12 +1785,8 @@ with editor_col:
             ] = None
 
 
-            # =================================================
-            # CANVAS BARU.
-            #
-            # Karena key berubah, canvas lama tidak digunakan.
-            # =================================================
-
+            # Canvas key berubah.
+            # Canvas lama dibuang.
             st.session_state.sas_canvas_version += 1
 
             st.rerun()
@@ -1837,7 +1800,7 @@ with editor_col:
 
         if st.button(
             "🔄 Reset",
-            key="sas_reset_v7",
+            key="sas_reset_v8",
             use_container_width=True,
         ):
 
@@ -1857,8 +1820,8 @@ with editor_col:
 
 
     st.caption(
-        "🗑️ Hapus Semua = bersihkan seluruh coretan slide ini. "
-        "↩️ Undo = kembalikan coretan sebelumnya."
+        "💡 Hapus Semua menghapus semua coretan pada slide aktif. "
+        "Undo mengembalikan perubahan terakhir."
     )
 
 
@@ -1886,7 +1849,9 @@ with notes_col:
     mini_note = st.text_input(
         "Kata kunci / rumus:",
         value=mini_value,
-        key=f"sas_mini_note_v7_{slide_index}",
+        key=(
+            f"sas_mini_v8_{slide_index}"
+        ),
         placeholder=(
             "Contoh: BEP = FC / (P - VC)"
         ),
@@ -1917,7 +1882,9 @@ with notes_col:
         "Penjelasan materi:",
         value=note_value,
         height=280,
-        key=f"sas_main_note_v7_{slide_index}",
+        key=(
+            f"sas_note_v8_{slide_index}"
+        ),
         placeholder=(
             "Tulis penjelasan materi "
             "dengan bahasa kamu sendiri..."
@@ -1931,7 +1898,7 @@ with notes_col:
 
 
     st.info(
-        "✨ Catatan otomatis tersimpan berdasarkan slide."
+        "✨ Catatan otomatis mengikuti slide aktif."
     )
 
 
@@ -1960,34 +1927,33 @@ with pdf_col:
 
     if st.button(
         "📄 Generate PDF",
-        key="sas_generate_pdf_v7",
+        key="sas_generate_pdf_v8",
         use_container_width=True,
     ):
 
-        with st.spinner(
-            "Menyusun PDF..."
-        ):
+        try:
 
-            try:
+            with st.spinner(
+                "Menyusun PDF..."
+            ):
 
                 pdf_file = create_pdf()
 
 
-                st.download_button(
-                    "⬇️ Unduh Hasil PDF",
-                    data=pdf_file.getvalue(),
-                    file_name="Hasil_Edit_Slide.pdf",
-                    mime="application/pdf",
-                    key="sas_download_pdf_v7",
-                    use_container_width=True,
-                )
+            st.download_button(
+                "⬇️ Unduh Hasil PDF",
+                data=pdf_file.getvalue(),
+                file_name="Hasil_Edit_Slide.pdf",
+                mime="application/pdf",
+                key="sas_download_pdf_v8",
+                use_container_width=True,
+            )
 
+        except Exception as error:
 
-            except Exception as error:
-
-                st.error(
-                    f"Gagal membuat PDF: {error}"
-                )
+            st.error(
+                f"Gagal membuat PDF: {error}"
+            )
 
 
 # ============================================================
@@ -1998,15 +1964,15 @@ with drive_col:
 
     if st.button(
         f"{theme['cloud']} Simpan ke Google Drive",
-        key="sas_save_drive_v7",
+        key="sas_drive_v8",
         use_container_width=True,
     ):
 
-        with st.spinner(
-            "Mengunggah..."
-        ):
+        try:
 
-            try:
+            with st.spinner(
+                "Mengunggah..."
+            ):
 
                 pdf_bytes = (
                     create_pdf()
@@ -2019,15 +1985,15 @@ with drive_col:
                 )
 
 
-                if file_id:
+            if file_id:
 
-                    st.success(
-                        "Berhasil disimpan ke Google Drive! 🎉"
-                    )
-
-
-            except Exception as error:
-
-                st.error(
-                    f"Gagal menyimpan ke Google Drive: {error}"
+                st.success(
+                    "Berhasil disimpan ke Google Drive! 🎉"
                 )
+
+        except Exception as error:
+
+            st.error(
+                f"Gagal menyimpan ke Google Drive: {error}"
+            )
+```
