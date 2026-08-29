@@ -9,97 +9,116 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RL
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
-# 1. Konfigurasi Halaman & Tema Cute
+# 1. Page Configuration
 st.set_page_config(
-    page_title="Laaura’s Study Resume",
+    page_title="Nela Aura's Aesthetic Studio",
     page_icon="🌸",
     layout="wide"
 )
 
-# Pilihan Tema Warna dan Emotikon
+# 2. Themes Definition with Aesthetic Gradient & Themed Emojis
 THEMES = {
-    "🌸 Sakura Pink": {
-        "primary": "#FFB7C5",
-        "bg": "#FFF0F5",
-        "text": "#8B2252",
-        "emojis": "🌸 🍓 🧋 🦄 ✨",
-        "header_color": colors.HexColor("#FF69B4")
+    "🌸 Sakura Dream": {
+        "gradient": "linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%)",
+        "card_bg": "#FFFFFFB3",
+        "text": "#5E3A4D",
+        "accent": "#FF9AA2",
+        "emojis": "🌸 🍓 🧋 🎀 ✨",
+        "header_color": colors.HexColor("#D87093")
     },
-    "🧸 Warm Teddy": {
-        "primary": "#D2B48C",
-        "bg": "#FAF0E6",
-        "text": "#5C4033",
+    "🧸 Warm Latte": {
+        "gradient": "linear-gradient(135deg, #FDFBF7 0%, #E2D1C3 100%)",
+        "card_bg": "#FFFFFFD9",
+        "text": "#4A3B32",
+        "accent": "#C4A482",
         "emojis": "🧸 ☕ 🧇 🍪 🍂",
-        "header_color": colors.HexColor("#8B4513")
+        "header_color": colors.HexColor("#8B5A2B")
     },
-    "🎀 Coquette Bow": {
-        "primary": "#FFC0CB",
-        "bg": "#FFFFFF",
-        "text": "#4A4A4A",
-        "emojis": "🎀 🕯️ 🩰 🦢 💫",
-        "header_color": colors.HexColor("#DB7093")
-    },
-    "🍵 Matcha Cream": {
-        "primary": "#C1E1C1",
-        "bg": "#F4F9F4",
-        "text": "#2E4A2E",
+    "🍵 Matcha Latte": {
+        "gradient": "linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)",
+        "card_bg": "#FFFFFFD9",
+        "text": "#2D4A3E",
+        "accent": "#81C784",
         "emojis": "🍵 🍃 🐸 🍏 🧁",
-        "header_color": colors.HexColor("#4A7C59")
+        "header_color": colors.HexColor("#388E3C")
     },
     "☁️ Cloud Lavender": {
-        "primary": "#E6E6FA",
-        "bg": "#F8F8FF",
-        "text": "#4B0082",
+        "gradient": "linear-gradient(135deg, #E6E6FA 0%, #F3E5F5 100%)",
+        "card_bg": "#FFFFFFD9",
+        "text": "#4A3E56",
+        "accent": "#B39DDB",
         "emojis": "☁️ 🌙 💜 🔮 🍰",
-        "header_color": colors.HexColor("#9370DB")
+        "header_color": colors.HexColor("#7E57C2")
+    },
+    "🌊 Coastal Breeze": {
+        "gradient": "linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)",
+        "card_bg": "#FFFFFFD9",
+        "text": "#1A4D54",
+        "accent": "#4DD0E1",
+        "emojis": "🌊 🐚 🐳 🍧 🫧",
+        "header_color": colors.HexColor("#00838F")
     }
 }
 
-# Apply CSS Styling berdasarkan Tema Pilihan
-selected_theme_name = st.sidebar.selectbox("🎨 Pilih Tema Cute:", list(THEMES.keys()))
+# 3. Sidebar - Theme Selector
+selected_theme_name = st.sidebar.selectbox("🎨 Select Aesthetic Theme", list(THEMES.keys()))
 theme = THEMES[selected_theme_name]
 
+# Apply Dynamic CSS with Gradient Background
 st.markdown(f"""
     <style>
     .stApp {{
-        background-color: {theme['bg']};
+        background: {theme['gradient']};
         color: {theme['text']};
+        font-family: 'Quicksand', 'Poppins', sans-serif;
     }}
     .main-title {{
         text-align: center;
         color: {theme['text']};
-        font-family: 'Comic Sans MS', cursive, sans-serif;
+        font-weight: 700;
+        font-size: 2.3rem;
+        margin-bottom: 0px;
     }}
     .watermark-tag {{
         text-align: center;
-        font-size: 14px;
+        font-size: 1rem;
         color: {theme['text']};
-        font-weight: bold;
-        margin-bottom: 20px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        margin-top: 5px;
+        margin-bottom: 25px;
+        opacity: 0.85;
     }}
     .stButton>button {{
-        background-color: {theme['primary']};
-        color: black;
-        border-radius: 15px;
-        border: none;
-        font-weight: bold;
+        background-color: {theme['accent']} !important;
+        color: white !important;
+        border-radius: 20px !important;
+        border: none !important;
+        font-weight: bold !important;
+        padding: 0.5rem 1.5rem !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }}
+    .stButton>button:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     }}
     </style>
 """, unsafe_allow_html=True)
 
-# 2. Header Utama
-st.markdown(f"<h1 class='main-title'>{theme['emojis'].split()[0]} Pembuat Rangkuman Cute {theme['emojis'].split()[1]}</h1>", unsafe_allow_html=True)
-st.markdown(f"<p class='watermark-tag'>✨ Created specially by Nela Aura ✨</p>", unsafe_allow_html=True)
-st.markdown(f"<p style='text-align: center;'>Ekstrak teks & gambar dari dokumen PDF, PPT, atau Word secara otomatis!</p>", unsafe_allow_html=True)
+# 4. Header Section
+emojis = theme['emojis'].split()
+st.markdown(f"<h1 class='main-title'>{emojis[0]} Aesthetic Summary Studio {emojis[1]}</h1>", unsafe_allow_html=True)
+st.markdown(f"<p class='watermark-tag'>✨ Crafted with love by Nela Aura ✨</p>", unsafe_allow_html=True)
 
-# 3. Fungsi Pembaca Dokumen & Ekstraksi Gambar
+# 5. Functions for Extracting Text & Images
 def extract_from_pdf(uploaded_file):
     text = ""
     images = []
     doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
     for page in doc:
         text += page.get_text() + "\n"
-        for img_index, img in enumerate(page.get_images()):
+        for img in page.get_images():
             xref = img[0]
             base_image = doc.extract_image(xref)
             image_bytes = base_image["image"]
@@ -130,15 +149,15 @@ def extract_from_pptx(uploaded_file):
                 images.append(Image.open(io.BytesIO(image_bytes)))
     return text, images
 
-# 4. Fungsi Rangkuman Sederhana (Text Summarizer Engine)
+# 6. Text Summarizer Engine
 def generate_summary(text, length_option):
     sentences = [s.strip() for s in text.split('.') if len(s.strip()) > 10]
     if not sentences:
-        return "Tidak dapat menemukan teks yang cukup untuk dirangkum."
+        return "No sufficient text found to summarize."
     
-    if length_option == "Singkat":
+    if length_option == "Concise":
         limit = max(3, len(sentences) // 4)
-    elif length_option == "Sedang":
+    elif length_option == "Balanced":
         limit = max(5, len(sentences) // 2)
     else:
         limit = max(8, int(len(sentences) * 0.75))
@@ -146,7 +165,7 @@ def generate_summary(text, length_option):
     summary = ". ".join(sentences[:limit]) + "."
     return summary
 
-# 5. Fungsi Export PDF Bertema & Berhias
+# 7. Function to Create Aesthetic PDF
 def create_pdf(summary_text, images, theme_info):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
@@ -155,7 +174,7 @@ def create_pdf(summary_text, images, theme_info):
     title_style = ParagraphStyle(
         'TitleStyle',
         parent=styles['Heading1'],
-        fontSize=20,
+        fontSize=18,
         textColor=theme_info['header_color'],
         alignment=1,
         spaceAfter=10
@@ -164,7 +183,7 @@ def create_pdf(summary_text, images, theme_info):
     author_style = ParagraphStyle(
         'AuthorStyle',
         parent=styles['Normal'],
-        fontSize=11,
+        fontSize=10,
         textColor=colors.gray,
         alignment=1,
         spaceAfter=20
@@ -173,53 +192,53 @@ def create_pdf(summary_text, images, theme_info):
     body_style = ParagraphStyle(
         'BodyStyle',
         parent=styles['Normal'],
-        fontSize=11,
-        leading=16,
-        spaceAfter=12
+        fontSize=10,
+        leading=15,
+        spaceAfter=10
     )
 
     story = []
     
     # Title & Watermark Nela Aura
-    story.append(Paragraph(f"{theme_info['emojis']} Rangkuman Catatan Cute {theme_info['emojis']}", title_style))
-    story.append(Paragraph("<b>Dokumen Rangkuman Resmi oleh: Nela Aura ✨</b>", author_style))
+    story.append(Paragraph(f"{theme_info['emojis']} Aesthetic Summary Notes {theme_info['emojis']}", title_style))
+    story.append(Paragraph("<b>Curated specially by: Nela Aura ✨</b>", author_style))
     story.append(Spacer(1, 12))
     
-    # Text Rangkuman
+    # Summary Content
     for paragraph in summary_text.split('\n'):
         if paragraph.strip():
             story.append(Paragraph(paragraph, body_style))
-            story.append(Spacer(1, 8))
+            story.append(Spacer(1, 6))
             
-    # Menyertakan Gambar
+    # Include Visual Elements/Images
     if images:
-        story.append(Spacer(1, 12))
-        story.append(Paragraph("<b>📷 Lampiran Gambar dari Dokumen:</b>", body_style))
-        for img in images[:5]:  # Batasi maksimal 5 gambar
+        story.append(Spacer(1, 10))
+        story.append(Paragraph(f"<b>{emojis[2]} Visual Highlights:</b>", body_style))
+        for img in images[:5]:
             img_buffer = io.BytesIO()
             img.save(img_buffer, format='PNG')
             img_buffer.seek(0)
-            rl_img = RLImage(img_buffer, width=300, height=200)
+            rl_img = RLImage(img_buffer, width=280, height=180)
             story.append(rl_img)
-            story.append(Spacer(1, 12))
+            story.append(Spacer(1, 10))
 
     doc.build(story)
     buffer.seek(0)
     return buffer
 
-# 6. Interaksi Pengguna
-st.sidebar.subheader("⚙️ Pengaturan Rangkuman")
-summary_length = st.sidebar.radio("Panjang Rangkuman:", ["Singkat", "Sedang", "Lengkap"])
+# 8. Main Application Interface
+st.sidebar.subheader(f"{emojis[2]} Summary Preferences")
+summary_length = st.sidebar.radio("Length Mode:", ["Concise", "Balanced", "Detailed"])
 
 uploaded_file = st.file_uploader(
-    "Unggah dokumen kamu di sini (PDF, PPTX, atau DOCX):", 
+    f"{emojis[3]} Upload your document (PDF, PPTX, or DOCX):", 
     type=["pdf", "pptx", "docx"]
 )
 
 if uploaded_file is not None:
     file_type = uploaded_file.name.split('.')[-1].lower()
     
-    with st.spinner("Sedang membaca dokumen & mengekstrak gambar... 🌸"):
+    with st.spinner(f"Curating and extracting content... {emojis[4]}"):
         if file_type == "pdf":
             raw_text, images = extract_from_pdf(uploaded_file)
         elif file_type == "docx":
@@ -230,24 +249,24 @@ if uploaded_file is not None:
     if raw_text.strip():
         summary = generate_summary(raw_text, summary_length)
         
-        st.subheader("📝 Hasil Rangkuman")
+        st.markdown(f"### {emojis[0]} Summary Overview")
         st.write(summary)
         
-        # Display Images jika ada
+        # Display Extracted Images
         if images:
-            st.subheader(f"🖼️ Gambar Ditemukan ({len(images)})")
+            st.markdown(f"### {emojis[2]} Visual Gallery ({len(images)})")
             cols = st.columns(min(3, len(images)))
             for idx, img in enumerate(images[:6]):
                 with cols[idx % 3]:
-                    st.image(img, caption=f"Gambar {idx+1}", use_column_width=True)
+                    st.image(img, caption=f"Highlight {idx+1}", use_column_width=True)
                     
-        # Tombol Download PDF
+        # Export PDF Button
         pdf_bytes = create_pdf(summary, images, theme)
         st.download_button(
-            label="✨ Download PDF Rangkuman (Versi Nela Aura)",
+            label=f"✨ Download Summary Notes (Nela Aura Edition)",
             data=pdf_bytes,
-            file_name=f"Rangkuman_Cute_Nela_Aura_{uploaded_file.name}.pdf",
+            file_name=f"Summary_NelaAura_{uploaded_file.name}.pdf",
             mime="application/pdf"
         )
     else:
-        st.warning("Dokumen ini tidak memiliki teks yang dapat dibaca.")
+        st.warning("No readable text found in this document.")
