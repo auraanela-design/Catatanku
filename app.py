@@ -69,7 +69,7 @@ theme_styles = {
 
 t = theme_styles[selected_theme]
 
-# Apply Style CSS Dinamis
+# CSS khusus untuk menumpuk Canvas tepat di atas Gambar Slide
 st.markdown(f"""
     <style>
         .stApp {{
@@ -98,6 +98,24 @@ st.markdown(f"""
             border: 1px solid {t['border']};
             display: inline-block;
             margin-bottom: 10px;
+        }}
+        /* CSS Overlay untuk Canvas di atas Gambar */
+        .canvas-container-box {{
+            position: relative;
+            width: 650px;
+            margin: 0 auto;
+        }}
+        .canvas-container-box img {{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }}
+        .canvas-container-box > div:last-child {{
+            position: relative;
+            z-index: 2;
         }}
     </style>
 """, unsafe_allow_html=True)
@@ -290,22 +308,22 @@ if st.session_state.slides_images:
     with col_canvas:
         st.subheader(f"🖼️ Canvas Slide {t['e_draw']}")
         
-        # Ambil slide mentah (tanpa coretan)
         current_bg = st.session_state.slides_images[slide_num]
-        
         canvas_width = 650
         aspect_ratio = current_bg.height / current_bg.width
         canvas_height = int(canvas_width * aspect_ratio)
         
-        # Pastikan format gambar RGBA (transparan aman)
-        resized_bg = current_bg.resize((canvas_width, canvas_height)).convert("RGBA")
+        resized_bg = current_bg.resize((canvas_width, canvas_height))
 
-        # Tampilkan canvas dengan mengikutsertakan gambar latar belakang secara langsung
+        # Tampilkan Gambar Slide secara langsung via Streamlit Image Native
+        st.image(resized_bg, use_container_width=True)
+
+        # Canvas Transparan untuk Mencoret-coret
         canvas_result = st_canvas(
             fill_color="rgba(255, 255, 0, 0.2)",
             stroke_width=stroke_width,
             stroke_color=stroke_color,
-            background_image=resized_bg,
+            background_color="rgba(0, 0, 0, 0)",  # Background transparan penuh
             update_streamlit=True,
             height=canvas_height,
             width=canvas_width,
@@ -313,6 +331,7 @@ if st.session_state.slides_images:
             key=f"canvas_slide_{slide_num}",
         )
         
+        # Menggabungkan gambar slide dengan coretan untuk diekspor
         if canvas_result.image_data is not None:
             annotated_img = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
             final_slide = Image.new("RGB", resized_bg.size, (255, 255, 255))
