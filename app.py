@@ -123,27 +123,43 @@ with st.sidebar:
 
     st.divider()
     st.header("🎨 Alat Coret-Coret")
-    drawing_mode = st.selectbox("Mode Gambar:", ("freedraw", "line", "rect", "circle", "transform"))
-    stroke_width = st.slider("Ukuran Kuas/Garis:", 1, 25, 3)
     
+    # Mode Gambar versi Bahasa Indonesia
+    mode_indo_map = {
+        "✏️ Coret Bebas (Pensil)": "freedraw",
+        "📏 Garis Lurus": "line",
+        "🔲 Kotak": "rect",
+        "⚪ Lingkaran": "circle",
+        "✋ Geser / Pilih Objek": "transform"
+    }
+    selected_mode_label = st.selectbox("Mode Alat:", list(mode_indo_map.keys()))
+    drawing_mode = mode_indo_map[selected_mode_label]
+    
+    # Pilihan Warna Cepat
     preset_color = st.radio(
-        "Pilih Warna Cepat:",
-        ["🔴 Merah", "🔵 Biru", "🟢 Hijau", "🟡 Kuning (Highlighter)", "⚫ Hitam", "🎨 Warna Kustom"],
+        "Pilih Alat & Warna:",
+        ["🖍️ Stabilo Kuning", "🔴 Merah", "🔵 Biru", "🟢 Hijau", "⚫ Hitam", "🎨 Warna Kustom"],
         index=0
     )
 
-    color_map = {
-        "🔴 Merah": "#FF0000",
-        "🔵 Biru": "#0055FF",
-        "🟢 Hijau": "#00AA44",
-        "🟡 Kuning (Highlighter)": "#FFFF00",
-        "⚫ Hitam": "#000000"
-    }
-
-    if preset_color == "🎨 Warna Kustom":
+    # Logika Warna & Transparansi Highlighter
+    if preset_color == "🖍️ Stabilo Kuning":
+        stroke_color = "rgba(255, 235, 59, 0.4)"  # Kuning stabilo transparan
+        default_stroke_width = 16
+    elif preset_color == "🎨 Warna Kustom":
         stroke_color = st.color_picker("Pilih Warna Bebas:", "#FF0000")
+        default_stroke_width = 3
     else:
+        color_map = {
+            "🔴 Merah": "#FF0000",
+            "🔵 Biru": "#0055FF",
+            "🟢 Hijau": "#00AA44",
+            "⚫ Hitam": "#000000"
+        }
         stroke_color = color_map[preset_color]
+        default_stroke_width = 3
+
+    stroke_width = st.slider("Ukuran Kuas / Garis:", 1, 30, default_stroke_width)
 
 # Editor Utama
 if st.session_state.slides_images:
@@ -168,7 +184,7 @@ if st.session_state.slides_images:
         resized_bg = current_bg.resize((canvas_width, canvas_height))
 
         canvas_result = st_canvas(
-            fill_color="rgba(255, 255, 0, 0.3)" if "Kuning" in preset_color else "rgba(255, 165, 0, 0.3)",
+            fill_color="rgba(255, 255, 0, 0.2)",
             stroke_width=stroke_width,
             stroke_color=stroke_color,
             background_image=resized_bg,
