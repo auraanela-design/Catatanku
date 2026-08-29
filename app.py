@@ -22,6 +22,7 @@ st.set_page_config(
 THEMES = {
     "🩰 Coquette Pink": {
         "gradient": "linear-gradient(135deg, #FFE4E1 0%, #FFC0CB 50%, #E6E6FA 100%)",
+        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 228, 225, 0.85) 50%, rgba(255, 192, 203, 0.75) 100%)",
         "card_bg": "rgba(255, 255, 255, 0.75)",
         "text": "#5C2C3B",
         "accent": "#E899AC",
@@ -33,6 +34,7 @@ THEMES = {
     },
     "☁️ Langit Cerah": {
         "gradient": "linear-gradient(135deg, #E0F7FA 0%, #B3E5FC 50%, #E1BEE7 100%)",
+        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(224, 247, 250, 0.85) 50%, rgba(179, 229, 252, 0.75) 100%)",
         "card_bg": "rgba(255, 255, 255, 0.75)",
         "text": "#1F3A52",
         "accent": "#81D4FA",
@@ -44,6 +46,7 @@ THEMES = {
     },
     "🍵 Matcha Soft": {
         "gradient": "linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 50%, #C8E6C9 100%)",
+        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 248, 233, 0.85) 50%, rgba(220, 237, 200, 0.75) 100%)",
         "card_bg": "rgba(255, 255, 255, 0.75)",
         "text": "#2D4A27",
         "accent": "#AED581",
@@ -55,6 +58,7 @@ THEMES = {
     },
     "🍂 Earth Warm": {
         "gradient": "linear-gradient(135deg, #FDFBF7 0%, #F5E6D3 50%, #E2D1C3 100%)",
+        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(253, 251, 247, 0.85) 50%, rgba(245, 230, 211, 0.75) 100%)",
         "card_bg": "rgba(255, 255, 255, 0.75)",
         "text": "#4A3B32",
         "accent": "#D7B596",
@@ -104,19 +108,13 @@ summary_format = st.sidebar.selectbox(
 summary_length = st.sidebar.radio("Panjang Rangkuman:", ["Singkat", "Sedang", "Panjang"])
 
 # Inject CSS Dynamic Styling
-paper_bg_css = ""
+paper_pattern_css = ""
 if paper_style == "Buku Tulis (Ruled Lines)":
-    paper_bg_css = f"background-image: repeating-linear-gradient(transparent, transparent 27px, {theme['line_color']} 28px);"
+    paper_pattern_css = f", repeating-linear-gradient(transparent, transparent 27px, {theme['line_color']} 28px)"
 elif paper_style == "Kotak-Kotak (Grid)":
-    paper_bg_css = f"""
-    background-image: linear-gradient({theme['line_color']} 1px, transparent 1px), linear-gradient(90deg, {theme['line_color']} 1px, transparent 1px);
-    background-size: 20px 20px;
-    """
+    paper_pattern_css = f", linear-gradient({theme['line_color']} 1px, transparent 1px), linear-gradient(90deg, {theme['line_color']} 1px, transparent 1px)"
 elif paper_style == "Bintik-Bintik (Dotted)":
-    paper_bg_css = f"""
-    background-image: radial-gradient({theme['line_color']} 1.5px, transparent 1.5px);
-    background-size: 20px 20px;
-    """
+    paper_pattern_css = f", radial-gradient({theme['line_color']} 1.5px, transparent 1.5px)"
 
 st.markdown(f"""
     <style>
@@ -151,16 +149,17 @@ st.markdown(f"""
         padding: 10px;
     }}
     .preview-paper {{
-        background-color: #ffffff;
+        background: {theme['paper_gradient']} {paper_pattern_css};
+        background-size: cover, 20px 20px, 20px 20px;
         border: 2px solid {theme['line_color']};
-        border-radius: 12px;
-        padding: 30px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-        color: #333333;
+        border-radius: 16px;
+        padding: 35px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        color: {theme['text']};
         font-family: {selected_font['css']};
         font-size: {selected_size['css']};
         line-height: 1.8;
-        {paper_bg_css}
+        backdrop-filter: blur(5px);
     }}
     .stButton>button {{
         background-color: {theme['accent']} !important;
@@ -184,7 +183,7 @@ st.markdown(f"""
 st.markdown(f"<h1 class='main-title'>{emojis[0]} Laaura's Resume {emojis[1]}</h1>", unsafe_allow_html=True)
 st.markdown(f"<p class='watermark-tag'>✨ Created by Laaura ✨</p>", unsafe_allow_html=True)
 
-# 5. Text Extraction Only (No image extraction from PPT/PDF background)
+# 5. Text Extraction Functions
 def extract_text_from_pdf(uploaded_file):
     text = ""
     doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
@@ -206,7 +205,7 @@ def extract_text_from_pptx(uploaded_file):
                     text += paragraph.text + "\n"
     return text
 
-# 6. Smart Summarizer (Preserves Formulas & Formatting)
+# 6. Smart Summarizer
 def generate_summary(text, length_option, format_option):
     sentences = [s.strip() for s in text.split('.') if len(s.strip()) > 10]
     if not sentences:
@@ -410,18 +409,18 @@ if 'summary' in st.session_state:
     st.markdown("---")
     st.markdown(f"### {emojis[0]} Preview Lembar Rangkuman ({paper_style})")
     
-    # Live Paper Preview dengan Dukungan Rumus LaTeX & Math
+    # Live Paper Preview dengan Gradasi Tema
     st.markdown(f"""
         <div class="preview-paper">
             <h2 style="text-align: center; color: {theme['text']}; margin-top: 0;">{emojis[0]} Laaura's Resume {emojis[1]}</h2>
-            <p style="text-align: center; color: #777; font-weight: bold; margin-bottom: 25px;">✨ Created by Laaura ✨</p>
+            <p style="text-align: center; color: {theme['text']}; font-weight: bold; margin-bottom: 25px; opacity: 0.8;">✨ Created by Laaura ✨</p>
         </div>
     """, unsafe_allow_html=True)
     
-    # Render Rangkuman & Rumus Matematika (jika ada)
+    # Render Rangkuman & Rumus Matematika
     st.write(summary)
     
-    # Preview Gambar yang Diupload Sendiri
+    # Preview Gambar
     if uploaded_images:
         st.markdown(f"#### {emojis[2]} Lampiran Gambar Tambahan ({len(uploaded_images)})")
         cols_img = st.columns(min(3, len(uploaded_images)))
