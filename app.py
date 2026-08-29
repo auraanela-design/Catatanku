@@ -32,7 +32,6 @@ with st.sidebar:
         ["🎀 Coquette Soft", "☁️ Langit & Awan", "🍓 Buah-Buahan", "🌿 Sage Minimalis"]
     )
 
-# Master Konfigurasi Warna & Emoji Tema
 theme_styles = {
     "🎀 Coquette Soft": {
         "bg_sidebar": "#FFF0F3",
@@ -102,6 +101,11 @@ st.markdown(f"""
         }}
     </style>
 """, unsafe_allow_html=True)
+
+def hex_to_rgba(hex_code, alpha=0.35):
+    hex_code = hex_code.lstrip('#')
+    r, g, b = tuple(int(hex_code[i:i+2], 16) for i in (0, 2, 4))
+    return f"rgba({r}, {g}, {b}, {alpha})"
 
 # Fungsi Konversi PDF ke Gambar
 def convert_pdf_to_images(pdf_bytes):
@@ -191,7 +195,6 @@ def upload_to_gdrive(file_bytes, filename="Hasil_Edit_Slide.pdf"):
         return None
 
 # --- INTERFACE UTAMA ---
-# GANTI NAMA KAMU DI SINI (Contoh: "Biyya's Space", "Tya's Workspace", dll)
 USER_NAME = "✨ Laaura's Study Desk"
 
 st.markdown(f'<div class="user-badge">{t["e_main"]} {USER_NAME}</div>', unsafe_allow_html=True)
@@ -218,35 +221,52 @@ with st.sidebar:
     st.header(f"{t['e_draw']} Alat Coret-Coret")
     
     mode_indo_map = {
-        f"✏️ Coret Bebas (Pensil)": "freedraw",
-        f"📏 Garis Lurus": "line",
-        f"🔲 Kotak": "rect",
-        f"⚪ Lingkaran": "circle",
-        f"✋ Geser / Pilih Objek": "transform"
+        "✏️ Coret Bebas (Pensil)": "freedraw",
+        "📏 Garis Lurus": "line",
+        "🔲 Kotak": "rect",
+        "⚪ Lingkaran": "circle",
+        "✋ Geser / Pilih Objek": "transform"
     }
     selected_mode_label = st.selectbox("Mode Alat:", list(mode_indo_map.keys()))
     drawing_mode = mode_indo_map[selected_mode_label]
     
-    preset_color = st.radio(
-        "Pilih Alat & Warna:",
-        ["🖍️ Stabilo Kuning", "🔴 Merah", "🔵 Biru", "🟢 Hijau", "⚫ Hitam", "🎨 Warna Kustom"],
-        index=0
-    )
+    # Pengaturan Jenis Alat & Warna Stabilo Bebas
+    tool_type = st.radio("Jenis Kuas:", ["✏️ Pen Biasa", "🖍️ Stabilo (Transparan)"], index=0)
 
-    if preset_color == "🖍️ Stabilo Kuning":
-        stroke_color = "rgba(255, 235, 59, 0.4)"
+    if tool_type == "🖍️ Stabilo (Transparan)":
+        preset_color = st.radio(
+            "Warna Stabilo:",
+            ["🟡 Kuning", "💖 Pink", "🟢 Hijau Mint", "🩵 Biru Muda", "🎨 Warna Kustom"],
+            index=0
+        )
+        stabilo_map = {
+            "🟡 Kuning": "rgba(255, 235, 59, 0.4)",
+            "💖 Pink": "rgba(255, 105, 180, 0.4)",
+            "🟢 Hijau Mint": "rgba(144, 238, 144, 0.4)",
+            "🩵 Biru Muda": "rgba(135, 206, 250, 0.4)"
+        }
+        if preset_color == "🎨 Warna Kustom":
+            custom_hex = st.color_picker("Pilih Warna Stabilo:", "#FFFF00")
+            stroke_color = hex_to_rgba(custom_hex, 0.4)
+        else:
+            stroke_color = stabilo_map[preset_color]
         default_stroke_width = 16
-    elif preset_color == "🎨 Warna Kustom":
-        stroke_color = st.color_picker("Pilih Warna Bebas:", "#FF0000")
-        default_stroke_width = 3
     else:
-        color_map = {
+        preset_color = st.radio(
+            "Warna Pen:",
+            ["🔴 Merah", "🔵 Biru", "🟢 Hijau", "⚫ Hitam", "🎨 Warna Kustom"],
+            index=0
+        )
+        pen_map = {
             "🔴 Merah": "#FF0000",
             "🔵 Biru": "#0055FF",
             "🟢 Hijau": "#00AA44",
             "⚫ Hitam": "#000000"
         }
-        stroke_color = color_map[preset_color]
+        if preset_color == "🎨 Warna Kustom":
+            stroke_color = st.color_picker("Pilih Warna Pen:", "#FF0000")
+        else:
+            stroke_color = pen_map[preset_color]
         default_stroke_width = 3
 
     stroke_width = st.slider("Ukuran Kuas / Garis:", 1, 30, default_stroke_width)
