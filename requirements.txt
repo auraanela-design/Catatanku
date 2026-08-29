@@ -1,9 +1,8 @@
-streamlit
+streamlit==1.28.0
 streamlit-drawable-canvas
-PyMuPDF
+pymupdf
 python-pptx
-pdf2image
-Pillow
+pillow
 reportlab
 google-api-python-client
 google-auth
