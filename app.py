@@ -195,7 +195,7 @@ def upload_to_gdrive(file_bytes, filename="Hasil_Edit_Slide.pdf"):
         return None
 
 # --- INTERFACE UTAMA ---
-USER_NAME = "✨Laaura's Study Desk"
+USER_NAME = "✨ Laaura's Study Desk"
 
 st.markdown(f'<div class="user-badge">{t["e_main"]} {USER_NAME}</div>', unsafe_allow_html=True)
 st.title(f"𐙚 Slide & Scribble {t['e_main']}")
@@ -220,7 +220,6 @@ with st.sidebar:
     st.divider()
     st.header(f"{t['e_draw']} Alat Coret-Coret & Teks")
     
-    # Menambahkan opsi Teks (text)
     mode_indo_map = {
         "✏️ Coret Bebas (Pensil)": "freedraw",
         "🔤 Tambah Teks (Ketik)": "text",
@@ -232,7 +231,6 @@ with st.sidebar:
     selected_mode_label = st.selectbox("Mode Alat:", list(mode_indo_map.keys()))
     drawing_mode = mode_indo_map[selected_mode_label]
     
-    # Pengaturan Jenis Alat & Warna
     tool_type = st.radio("Jenis Alat:", ["✏️ Pen / Teks Biasa", "🖍️ Stabilo (Transparan)"], index=0)
 
     if tool_type == "🖍️ Stabilo (Transparan)":
@@ -277,9 +275,13 @@ with st.sidebar:
 if st.session_state.slides_images:
     total_slides = len(st.session_state.slides_images)
     
-    col_nav1, col_nav2, col_nav3 = st.columns([1, 2, 1])
-    with col_nav2:
-        slide_num = st.slider("Pilih Slide:", 1, total_slides, 1) - 1
+    # Navigasi Slide yang Aman dari Error Slider
+    if total_slides > 1:
+        col_nav1, col_nav2, col_nav3 = st.columns([1, 2, 1])
+        with col_nav2:
+            slide_num = st.slider("Pilih Slide:", 1, total_slides, 1) - 1
+    else:
+        slide_num = 0
 
     st.markdown(f"### Slide {slide_num + 1} dari {total_slides} {t['e_sub']}")
     
@@ -295,7 +297,6 @@ if st.session_state.slides_images:
         
         resized_bg = current_bg.resize((canvas_width, canvas_height))
 
-        # Canvas dengan dukungan fitur pengetikan teks
         canvas_result = st_canvas(
             fill_color="rgba(255, 255, 0, 0.2)",
             stroke_width=stroke_width,
