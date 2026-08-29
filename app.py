@@ -69,7 +69,7 @@ theme_styles = {
 
 t = theme_styles[selected_theme]
 
-# CSS khusus untuk menumpuk Canvas tepat di atas Gambar Slide
+# Styling CSS
 st.markdown(f"""
     <style>
         .stApp {{
@@ -98,24 +98,6 @@ st.markdown(f"""
             border: 1px solid {t['border']};
             display: inline-block;
             margin-bottom: 10px;
-        }}
-        /* CSS Overlay untuk Canvas di atas Gambar */
-        .canvas-container-box {{
-            position: relative;
-            width: 650px;
-            margin: 0 auto;
-        }}
-        .canvas-container-box img {{
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }}
-        .canvas-container-box > div:last-child {{
-            position: relative;
-            z-index: 2;
         }}
     </style>
 """, unsafe_allow_html=True)
@@ -213,7 +195,7 @@ def upload_to_gdrive(file_bytes, filename="Hasil_Edit_Slide.pdf"):
         return None
 
 # --- INTERFACE UTAMA ---
-USER_NAME = "✨ Laaura's Study Desk"
+USER_NAME = "✨ My Personal Study Space"
 
 st.markdown(f'<div class="user-badge">{t["e_main"]} {USER_NAME}</div>', unsafe_allow_html=True)
 st.title(f"𐙚 Slide & Scribble {t['e_main']}")
@@ -315,15 +297,15 @@ if st.session_state.slides_images:
         
         resized_bg = current_bg.resize((canvas_width, canvas_height))
 
-        # Tampilkan Gambar Slide secara langsung via Streamlit Image Native
-        st.image(resized_bg, use_container_width=True)
+        # PERBAIKAN: Menggunakan use_column_width=True agar cocok dengan Streamlit versi lama
+        st.image(resized_bg, use_column_width=True)
 
-        # Canvas Transparan untuk Mencoret-coret
+        # Canvas untuk Mencoret-coret
         canvas_result = st_canvas(
             fill_color="rgba(255, 255, 0, 0.2)",
             stroke_width=stroke_width,
             stroke_color=stroke_color,
-            background_color="rgba(0, 0, 0, 0)",  # Background transparan penuh
+            background_color="rgba(0, 0, 0, 0)",
             update_streamlit=True,
             height=canvas_height,
             width=canvas_width,
