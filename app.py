@@ -22,7 +22,7 @@ st.set_page_config(
 THEMES = {
     "🩰 Coquette Pink": {
         "gradient": "linear-gradient(135deg, #FFE4E1 0%, #FFC0CB 50%, #E6E6FA 100%)",
-        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 228, 225, 0.85) 50%, rgba(255, 192, 203, 0.75) 100%)",
+        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 228, 225, 0.90) 50%, rgba(255, 192, 203, 0.85) 100%)",
         "card_bg": "rgba(255, 255, 255, 0.75)",
         "text": "#5C2C3B",
         "accent": "#E899AC",
@@ -34,7 +34,7 @@ THEMES = {
     },
     "☁️ Langit Cerah": {
         "gradient": "linear-gradient(135deg, #E0F7FA 0%, #B3E5FC 50%, #E1BEE7 100%)",
-        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(224, 247, 250, 0.85) 50%, rgba(179, 229, 252, 0.75) 100%)",
+        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(224, 247, 250, 0.90) 50%, rgba(179, 229, 252, 0.85) 100%)",
         "card_bg": "rgba(255, 255, 255, 0.75)",
         "text": "#1F3A52",
         "accent": "#81D4FA",
@@ -46,7 +46,7 @@ THEMES = {
     },
     "🍵 Matcha Soft": {
         "gradient": "linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 50%, #C8E6C9 100%)",
-        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 248, 233, 0.85) 50%, rgba(220, 237, 200, 0.75) 100%)",
+        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 248, 233, 0.90) 50%, rgba(220, 237, 200, 0.85) 100%)",
         "card_bg": "rgba(255, 255, 255, 0.75)",
         "text": "#2D4A27",
         "accent": "#AED581",
@@ -58,7 +58,7 @@ THEMES = {
     },
     "🍂 Earth Warm": {
         "gradient": "linear-gradient(135deg, #FDFBF7 0%, #F5E6D3 50%, #E2D1C3 100%)",
-        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(253, 251, 247, 0.85) 50%, rgba(245, 230, 211, 0.75) 100%)",
+        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(253, 251, 247, 0.90) 50%, rgba(245, 230, 211, 0.85) 100%)",
         "card_bg": "rgba(255, 255, 255, 0.75)",
         "text": "#4A3B32",
         "accent": "#D7B596",
@@ -159,7 +159,6 @@ st.markdown(f"""
         font-family: {selected_font['css']};
         font-size: {selected_size['css']};
         line-height: 1.8;
-        backdrop-filter: blur(5px);
     }}
     .stButton>button {{
         background-color: {theme['accent']} !important;
@@ -221,14 +220,14 @@ def generate_summary(text, length_option, format_option):
     selected_sentences = sentences[:limit]
 
     if format_option == "Bullet Points (Poin-Poin)":
-        return "\n".join([f"• {s}." for s in selected_sentences])
+        return "<br/>".join([f"• {s}." for s in selected_sentences])
     elif format_option == "Paragraf":
         return ". ".join(selected_sentences) + "."
     else:  # Campuran
         mid = max(1, len(selected_sentences) // 2)
         intro_para = ". ".join(selected_sentences[:mid]) + "."
-        bullet_pts = "\n".join([f"• {s}." for s in selected_sentences[mid:]])
-        return f"{intro_para}\n\n<b>Poin-Poin Utama:</b>\n{bullet_pts}"
+        bullet_pts = "<br/>".join([f"• {s}." for s in selected_sentences[mid:]])
+        return f"{intro_para}<br/><br/><b>Poin-Poin Utama:</b><br/>{bullet_pts}"
 
 # 7. ReportLab PDF Engine
 def create_custom_pdf(summary_text, custom_uploaded_images, theme_info, font_info, size_info, pattern_name):
@@ -290,7 +289,7 @@ def create_custom_pdf(summary_text, custom_uploaded_images, theme_info, font_inf
     story.append(Spacer(1, 18))
 
     # Summary Text Block
-    formatted_summary = summary_text.replace('\n', '<br/>')
+    formatted_summary = summary_text.replace('<br/>', '<br/>')
     summary_paragraph = Paragraph(formatted_summary, body_style)
     
     summary_table = Table([[summary_paragraph]], colWidths=[520])
@@ -409,19 +408,19 @@ if 'summary' in st.session_state:
     st.markdown("---")
     st.markdown(f"### {emojis[0]} Preview Lembar Rangkuman ({paper_style})")
     
-    # Live Paper Preview dengan Gradasi Tema
+    # Live Paper Preview dengan Teks Rangkuman di dalamnya
     st.markdown(f"""
         <div class="preview-paper">
             <h2 style="text-align: center; color: {theme['text']}; margin-top: 0;">{emojis[0]} Laaura's Resume {emojis[1]}</h2>
             <p style="text-align: center; color: {theme['text']}; font-weight: bold; margin-bottom: 25px; opacity: 0.8;">✨ Created by Laaura ✨</p>
+            <hr style="border: none; border-top: 1px dashed {theme['line_color']}; margin-bottom: 20px;">
+            <div>{summary}</div>
         </div>
     """, unsafe_allow_html=True)
     
-    # Render Rangkuman & Rumus Matematika
-    st.write(summary)
-    
     # Preview Gambar
     if uploaded_images:
+        st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(f"#### {emojis[2]} Lampiran Gambar Tambahan ({len(uploaded_images)})")
         cols_img = st.columns(min(3, len(uploaded_images)))
         for idx, img_file in enumerate(uploaded_images):
