@@ -1,0 +1,7 @@
+streamlit
+streamlit-drawable-canvas
+PyMuPDF
+python-pptx
+pdf2image
+Pillow
+reportlab
