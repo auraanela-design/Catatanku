@@ -394,9 +394,10 @@ def create_pdf():
         note = st.session_state.sas_notes.get(index, "").strip()
 
         if mini:
+            formatted_mini = html.escape(mini).replace("\n", "<br/>")
             story.append(
                 Paragraph(
-                    f"<b>📌 Mini Notes</b><br/>{html.escape(mini).replace('\n', '<br/>')}",
+                    f"<b>📌 Mini Notes</b><br/>{formatted_mini}",
                     note_style,
                 )
             )
