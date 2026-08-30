@@ -170,17 +170,35 @@ st.markdown(f"""
         font-family: {selected_font['css']};
     }}
     
+    /* Container pembungkus Uploader */
     div[data-testid="stExpander"], div[data-testid="stFileUploader"] {{
         background-color: {theme['card_bg']};
         border-radius: 15px;
         padding: 10px;
     }}
     
-    /* Penyesuaian khusus dropzone uploader & teks 200MB menjadi warna hitam pekat */
+    /* Perbaikan Tata Letak & Alignment Dropzone Uploader */
     [data-testid="stFileUploaderDropzone"] {{
         background-color: #FFFFFF !important;
         border: 2px dashed #C72C41 !important;
         border-radius: 12px !important;
+        padding: 20px 15px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        min-height: 120px !important;
+    }}
+
+    [data-testid="stFileUploaderDropzoneInstructions"] {{
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+        text-align: center !important;
     }}
 
     [data-testid="stFileUploaderDropzone"] *, 
@@ -190,6 +208,9 @@ st.markdown(f"""
         color: #000000 !important;
         font-weight: 600 !important;
         opacity: 1 !important;
+        text-align: center !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
     }}
 
     [data-testid="stFileUploaderDropzone"] button {{
@@ -198,6 +219,8 @@ st.markdown(f"""
         border: 1px solid #BBBBBB !important;
         border-radius: 8px !important;
         font-weight: bold !important;
+        margin: 0 auto !important;
+        display: inline-block !important;
     }}
 
     /* Preview Lembar Rangkuman */
