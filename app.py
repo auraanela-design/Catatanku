@@ -142,8 +142,23 @@ st.markdown(f"""
     }}
 
     /* ======================================================== */
-    /* KHUSUS SIDEBAR: MEMAKSA SEMUA ELEMEN BERWARNA HITAM PEKAT */
+    /* KHUSUS SIDEBAR: MEMBUAT KOTAK PUTIH UNTUK KONTROL CONTROL */
     /* ======================================================== */
+    [data-testid="stSidebarContent"] {{
+        padding: 15px !important;
+    }}
+
+    /* Container elemen input di sidebar diberi latar putih terang */
+    [data-testid="stSidebar"] div.stSelectbox, 
+    [data-testid="stSidebar"] div.stRadio {{
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        border-radius: 12px !important;
+        padding: 12px 15px !important;
+        margin-bottom: 12px !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+    }}
+
+    /* Memaksa Semua Teks & Label di Sidebar Berwarna Hitam Pekat */
     [data-testid="stSidebar"] *, 
     [data-testid="stSidebar"] p, 
     [data-testid="stSidebar"] span, 
@@ -157,17 +172,25 @@ st.markdown(f"""
         font-weight: 500;
     }}
 
-    /* Judul Sub-Header Sidebar dibuat Bold Hitam */
+    /* Judul Sub-Header Sidebar diberi latar putih juga */
     [data-testid="stSidebar"] h3 {{
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
         font-weight: 700 !important;
+        font-size: 1.05rem !important;
+        margin-top: 10px !important;
+        margin-bottom: 10px !important;
     }}
 
-    /* Teks Pilihan di Dalam Kotak Dropdown / Selectbox Sidebar */
-    [data-testid="stSidebar"] div[role="combobox"] * {{
-        color: #000000 !important;
+    /* Inner box dropdown selectbox di sidebar */
+    [data-testid="stSidebar"] div[role="combobox"] {{
+        background-color: #FFFFFF !important;
+        border: 1px solid #DDDDDD !important;
+        border-radius: 8px !important;
     }}
 
-    /* Header Utama */
+    /* Header Utama Page */
     .main-title {{
         text-align: center;
         color: {theme['text']} !important;
@@ -191,7 +214,7 @@ st.markdown(f"""
 
     /* Container Utama Uploader */
     div[data-testid="stFileUploader"] {{
-        background-color: rgba(255, 255, 255, 0.9) !important;
+        background-color: rgba(255, 255, 255, 0.95) !important;
         border-radius: 15px !important;
         padding: 15px !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -212,7 +235,7 @@ st.markdown(f"""
         padding: 15px !important;
     }}
 
-    /* Memaksa Semua Teks & Ikon Di Dalam Dropzone Uploader Berwarna Hitam */
+    /* Teks & Ikon Di Dalam Dropzone Uploader */
     [data-testid="stFileUploaderDropzone"] *, 
     [data-testid="stFileUploaderDropzone"] section, 
     [data-testid="stFileUploaderDropzone"] span, 
