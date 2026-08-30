@@ -141,10 +141,33 @@ st.markdown(f"""
         font-family: {selected_font['css']};
     }}
 
-    [data-testid="stSidebar"] * {{
-        color: {theme['text']};
+    /* ======================================================== */
+    /* KHUSUS SIDEBAR: MEMAKSA SEMUA ELEMEN BERWARNA HITAM PEKAT */
+    /* ======================================================== */
+    [data-testid="stSidebar"] *, 
+    [data-testid="stSidebar"] p, 
+    [data-testid="stSidebar"] span, 
+    [data-testid="stSidebar"] label, 
+    [data-testid="stSidebar"] h1, 
+    [data-testid="stSidebar"] h2, 
+    [data-testid="stSidebar"] h3, 
+    [data-testid="stSidebar"] div,
+    [data-testid="stSidebar"] option {{
+        color: #000000 !important;
+        font-weight: 500;
     }}
 
+    /* Judul Sub-Header Sidebar dibuat Bold Hitam */
+    [data-testid="stSidebar"] h3 {{
+        font-weight: 700 !important;
+    }}
+
+    /* Teks Pilihan di Dalam Kotak Dropdown / Selectbox Sidebar */
+    [data-testid="stSidebar"] div[role="combobox"] * {{
+        color: #000000 !important;
+    }}
+
+    /* Header Utama */
     .main-title {{
         text-align: center;
         color: {theme['text']} !important;
@@ -174,7 +197,7 @@ st.markdown(f"""
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }}
 
-    /* Memaksa Judul Label Uploader Berwarna Hitam Pekat */
+    /* Label Uploader */
     div[data-testid="stFileUploader"] label,
     div[data-testid="stFileUploader"] label p {{
         color: #000000 !important;
@@ -189,7 +212,7 @@ st.markdown(f"""
         padding: 15px !important;
     }}
 
-    /* Memaksa Semua Teks & Ikon Di Dalam Dropzone Berwarna Hitam */
+    /* Memaksa Semua Teks & Ikon Di Dalam Dropzone Uploader Berwarna Hitam */
     [data-testid="stFileUploaderDropzone"] *, 
     [data-testid="stFileUploaderDropzone"] section, 
     [data-testid="stFileUploaderDropzone"] span, 
@@ -198,7 +221,7 @@ st.markdown(f"""
         color: #000000 !important;
     }}
 
-    /* Merapikan & Memaksa Teks Tombol Browse Berwarna Hitam */
+    /* Tombol Browse Uploader */
     [data-testid="stFileUploaderDropzone"] button {{
         background-color: #F8F9FA !important;
         border: 1px solid #CCCCCC !important;
