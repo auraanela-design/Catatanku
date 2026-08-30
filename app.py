@@ -36,7 +36,7 @@ THEMES = {
         "gradient": "linear-gradient(135deg, #3B0008 0%, #5E0015 50%, #800020 100%)",
         "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 235, 238, 0.92) 50%, rgba(244, 204, 211, 0.88) 100%)",
         "card_bg": "rgba(255, 255, 255, 0.15)",
-        "text": "#FFFFFF",  # Font Putih
+        "text": "#FFFFFF",  # Font Putih untuk Home & Sidebar
         "accent": "#C72C41",
         "emojis": "🍷 🍓 🥀 🕯️ 🍒",
         "pdf_bg": colors.HexColor("#FAEBEE"),
@@ -72,7 +72,7 @@ THEMES = {
         "gradient": "linear-gradient(135deg, #D7C4B7 0%, #AF9483 50%, #8C6D58 100%)",
         "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 235, 226, 0.90) 50%, rgba(230, 215, 201, 0.85) 100%)",
         "card_bg": "rgba(255, 255, 255, 0.75)",
-        "text": "#3E2723",  # Tone Cokelat Tua Warm
+        "text": "#3E2723",
         "accent": "#8D6E63",
         "emojis": "🍂 ☕ 🧸 🪵 🌾",
         "pdf_bg": colors.HexColor("#FAF0E6"),
@@ -130,22 +130,30 @@ elif paper_style == "Bintik-Bintik (Dotted)":
 
 st.markdown(f"""
     <style>
-    /* Latar belakang utama DAN sidebar */
-    .stApp, [data-testid="stSidebar"] {{
-        background: {theme['gradient']} !important;
-        background-attachment: fixed !important;
+    /* Mengubah warna latar belakang DAN seluruh teks di Halaman Utama (Home) & Sidebar */
+    .stApp, [data-testid="stSidebar"], .stApp p, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp label, .stApp span {{
         color: {theme['text']} !important;
         font-family: {selected_font['css']};
     }}
+    
+    .stApp {{
+        background: {theme['gradient']} !important;
+        background-attachment: fixed !important;
+    }}
 
-    /* Warna teks dan label di sidebar */
+    [data-testid="stSidebar"] {{
+        background: {theme['gradient']} !important;
+        background-attachment: fixed !important;
+    }}
+
+    /* Mengubah semua teks di dalam sidebar */
     [data-testid="stSidebar"] * {{
         color: {theme['text']} !important;
     }}
 
     .main-title {{
         text-align: center;
-        color: {theme['text']};
+        color: {theme['text']} !important;
         font-weight: 700;
         font-size: 2.5rem;
         margin-bottom: 0px;
@@ -154,7 +162,7 @@ st.markdown(f"""
     .watermark-tag {{
         text-align: center;
         font-size: 1.1rem;
-        color: {theme['text']};
+        color: {theme['text']} !important;
         font-weight: 600;
         letter-spacing: 1px;
         margin-top: 5px;
@@ -167,6 +175,7 @@ st.markdown(f"""
         border-radius: 15px;
         padding: 10px;
     }}
+    /* Hanya teks di dalam preview lembar kertas yang tetap gelap agar mudah dibaca */
     .preview-paper {{
         background: {theme['paper_gradient']} {paper_pattern_css};
         background-size: cover, 20px 20px, 20px 20px;
@@ -174,10 +183,13 @@ st.markdown(f"""
         border-radius: 16px;
         padding: 35px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-        color: #333333; /* Warna teks di dalam lembar kertas selalu gelap agar nyaman dibaca */
+        color: #333333 !important;
         font-family: {selected_font['css']};
         font-size: {selected_size['css']};
         line-height: 1.8;
+    }}
+    .preview-paper * {{
+        color: #333333 !important;
     }}
     .stButton>button {{
         background-color: {theme['accent']} !important;
@@ -430,8 +442,8 @@ if 'summary' in st.session_state:
     # Live Paper Preview
     st.markdown(f"""
         <div class="preview-paper">
-            <h2 style="text-align: center; color: #333333; margin-top: 0;">{emojis[0]} Laaura's Resume {emojis[1]}</h2>
-            <p style="text-align: center; color: #666666; font-weight: bold; margin-bottom: 25px; opacity: 0.8;">✨ Created by Laaura ✨</p>
+            <h2 style="text-align: center; margin-top: 0;">{emojis[0]} Laaura's Resume {emojis[1]}</h2>
+            <p style="text-align: center; font-weight: bold; margin-bottom: 25px; opacity: 0.8;">✨ Created by Laaura ✨</p>
             <hr style="border: none; border-top: 1px dashed {theme['line_color']}; margin-bottom: 20px;">
             <div>{summary}</div>
         </div>
