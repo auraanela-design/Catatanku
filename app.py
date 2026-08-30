@@ -36,7 +36,7 @@ THEMES = {
         "gradient": "linear-gradient(135deg, #3B0008 0%, #5E0015 50%, #800020 100%)",
         "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 235, 238, 0.92) 50%, rgba(244, 204, 211, 0.88) 100%)",
         "card_bg": "rgba(255, 255, 255, 0.15)",
-        "text": "#FFFFFF",  # Font Putih untuk Home & Sidebar
+        "text": "#FFFFFF",
         "accent": "#C72C41",
         "emojis": "🍷 🍓 🥀 🕯️ 🍒",
         "pdf_bg": colors.HexColor("#FAEBEE"),
@@ -130,7 +130,7 @@ elif paper_style == "Bintik-Bintik (Dotted)":
 
 st.markdown(f"""
     <style>
-    /* Mengubah warna latar belakang DAN seluruh teks di Halaman Utama & Sidebar */
+    /* Latar belakang utama DAN sidebar */
     .stApp, [data-testid="stSidebar"], .stApp p, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp label, .stApp span {{
         color: {theme['text']} !important;
         font-family: {selected_font['css']};
@@ -146,7 +146,6 @@ st.markdown(f"""
         background-attachment: fixed !important;
     }}
 
-    /* Mengubah semua teks di dalam sidebar */
     [data-testid="stSidebar"] * {{
         color: {theme['text']} !important;
     }}
@@ -171,31 +170,37 @@ st.markdown(f"""
         font-family: {selected_font['css']};
     }}
     
-    /* Perbaikan tampilan File Uploader agar teks & tombol di dalam kotak uploader terlihat jelas */
     div[data-testid="stExpander"], div[data-testid="stFileUploader"] {{
         background-color: {theme['card_bg']};
         border-radius: 15px;
         padding: 10px;
     }}
     
-    div[data-testid="stFileUploaderDropzone"] {{
-        background-color: #F8F9FA !important;
-        border: 2px dashed {theme['accent']} !important;
+    /* Penyesuaian khusus dropzone uploader & teks 200MB menjadi warna hitam pekat */
+    [data-testid="stFileUploaderDropzone"] {{
+        background-color: #FFFFFF !important;
+        border: 2px dashed #C72C41 !important;
         border-radius: 12px !important;
     }}
-    
-    div[data-testid="stFileUploaderDropzone"] * {{
-        color: #333333 !important;
-    }}
-    
-    div[data-testid="stFileUploaderDropzone"] button {{
-        background-color: #FFFFFF !important;
-        color: #333333 !important;
-        border: 1px solid #CCCCCC !important;
-        border-radius: 8px !important;
+
+    [data-testid="stFileUploaderDropzone"] *, 
+    [data-testid="stFileUploaderDropzone"] small,
+    [data-testid="stFileUploaderDropzone"] span,
+    [data-testid="stFileUploaderDropzoneInstructions"] div {{
+        color: #000000 !important;
+        font-weight: 600 !important;
+        opacity: 1 !important;
     }}
 
-    /* Hanya teks di dalam preview lembar kertas yang tetap gelap agar mudah dibaca */
+    [data-testid="stFileUploaderDropzone"] button {{
+        background-color: #F0F0F0 !important;
+        color: #000000 !important;
+        border: 1px solid #BBBBBB !important;
+        border-radius: 8px !important;
+        font-weight: bold !important;
+    }}
+
+    /* Preview Lembar Rangkuman */
     .preview-paper {{
         background: {theme['paper_gradient']} {paper_pattern_css};
         background-size: cover, 20px 20px, 20px 20px;
