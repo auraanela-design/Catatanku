@@ -130,7 +130,7 @@ elif paper_style == "Bintik-Bintik (Dotted)":
 
 st.markdown(f"""
     <style>
-    /* Mengubah warna latar belakang DAN seluruh teks di Halaman Utama (Home) & Sidebar */
+    /* Mengubah warna latar belakang DAN seluruh teks di Halaman Utama & Sidebar */
     .stApp, [data-testid="stSidebar"], .stApp p, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp label, .stApp span {{
         color: {theme['text']} !important;
         font-family: {selected_font['css']};
@@ -170,11 +170,31 @@ st.markdown(f"""
         opacity: 0.9;
         font-family: {selected_font['css']};
     }}
+    
+    /* Perbaikan tampilan File Uploader agar teks & tombol di dalam kotak uploader terlihat jelas */
     div[data-testid="stExpander"], div[data-testid="stFileUploader"] {{
         background-color: {theme['card_bg']};
         border-radius: 15px;
         padding: 10px;
     }}
+    
+    div[data-testid="stFileUploaderDropzone"] {{
+        background-color: #F8F9FA !important;
+        border: 2px dashed {theme['accent']} !important;
+        border-radius: 12px !important;
+    }}
+    
+    div[data-testid="stFileUploaderDropzone"] * {{
+        color: #333333 !important;
+    }}
+    
+    div[data-testid="stFileUploaderDropzone"] button {{
+        background-color: #FFFFFF !important;
+        color: #333333 !important;
+        border: 1px solid #CCCCCC !important;
+        border-radius: 8px !important;
+    }}
+
     /* Hanya teks di dalam preview lembar kertas yang tetap gelap agar mudah dibaca */
     .preview-paper {{
         background: {theme['paper_gradient']} {paper_pattern_css};
