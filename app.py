@@ -131,23 +131,18 @@ elif paper_style == "Bintik-Bintik (Dotted)":
 st.markdown(f"""
     <style>
     /* Latar belakang utama DAN sidebar */
-    .stApp, [data-testid="stSidebar"], .stApp p, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp label, .stApp span {{
-        color: {theme['text']} !important;
-        font-family: {selected_font['css']};
-    }}
-    
-    .stApp {{
+    .stApp, [data-testid="stSidebar"] {{
         background: {theme['gradient']} !important;
         background-attachment: fixed !important;
     }}
 
-    [data-testid="stSidebar"] {{
-        background: {theme['gradient']} !important;
-        background-attachment: fixed !important;
+    .stApp p, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp label {{
+        color: {theme['text']};
+        font-family: {selected_font['css']};
     }}
 
     [data-testid="stSidebar"] * {{
-        color: {theme['text']} !important;
+        color: {theme['text']};
     }}
 
     .main-title {{
@@ -158,6 +153,7 @@ st.markdown(f"""
         margin-bottom: 0px;
         font-family: {selected_font['css']};
     }}
+    
     .watermark-tag {{
         text-align: center;
         font-size: 1.1rem;
@@ -170,57 +166,29 @@ st.markdown(f"""
         font-family: {selected_font['css']};
     }}
     
-    /* Container pembungkus Uploader */
+    /* Container Uploader */
     div[data-testid="stExpander"], div[data-testid="stFileUploader"] {{
         background-color: {theme['card_bg']};
         border-radius: 15px;
         padding: 10px;
     }}
-    
-    /* Perbaikan Tata Letak & Alignment Dropzone Uploader */
+
+    /* Box Dropzone Uploader */
     [data-testid="stFileUploaderDropzone"] {{
         background-color: #FFFFFF !important;
-        border: 2px dashed #C72C41 !important;
+        border: 2px dashed {theme['accent']} !important;
         border-radius: 12px !important;
-        padding: 20px 15px !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        text-align: center !important;
-        min-height: 120px !important;
+        padding: 20px !important;
     }}
 
-    [data-testid="stFileUploaderDropzoneInstructions"] {{
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 8px !important;
-        width: 100% !important;
-        text-align: center !important;
-    }}
-
-    [data-testid="stFileUploaderDropzone"] *, 
-    [data-testid="stFileUploaderDropzone"] small,
-    [data-testid="stFileUploaderDropzone"] span,
-    [data-testid="stFileUploaderDropzoneInstructions"] div {{
-        color: #000000 !important;
-        font-weight: 600 !important;
-        opacity: 1 !important;
-        text-align: center !important;
-        white-space: normal !important;
-        word-wrap: break-word !important;
-    }}
-
+    /* Merapikan Tombol Upload & Mengatasi Teks Bertumpuk */
     [data-testid="stFileUploaderDropzone"] button {{
-        background-color: #F0F0F0 !important;
-        color: #000000 !important;
-        border: 1px solid #BBBBBB !important;
         border-radius: 8px !important;
-        font-weight: bold !important;
+        border: 1px solid #CCCCCC !important;
+        background-color: #F8F9FA !important;
+        color: #333333 !important;
+        font-weight: 600 !important;
         margin: 0 auto !important;
-        display: inline-block !important;
     }}
 
     /* Preview Lembar Rangkuman */
@@ -236,9 +204,12 @@ st.markdown(f"""
         font-size: {selected_size['css']};
         line-height: 1.8;
     }}
+    
     .preview-paper * {{
         color: #333333 !important;
     }}
+
+    /* Tombol Utama */
     .stButton>button {{
         background-color: {theme['accent']} !important;
         color: white !important;
@@ -250,6 +221,7 @@ st.markdown(f"""
         box-shadow: 0 4px 10px rgba(0,0,0,0.08);
         transition: all 0.3s ease;
     }}
+    
     .stButton>button:hover {{
         transform: translateY(-2px);
         box-shadow: 0 6px 15px rgba(0,0,0,0.12);
