@@ -83,6 +83,8 @@ THEMES = {
 }
 
 FONTS = {
+    "Poppins (Modern Clean)": {"rl": "Helvetica", "rl_bold": "Helvetica-Bold", "css": "'Poppins', sans-serif"},
+    "Times New Roman / Series": {"rl": "Times-Roman", "rl_bold": "Times-Bold", "css": "'Times New Roman', Times, serif"},
     "Classic Serif (Times)": {"rl": "Times-Roman", "rl_bold": "Times-Bold", "css": "'Times New Roman', serif"},
     "Modern Sans (Helvetica)": {"rl": "Helvetica", "rl_bold": "Helvetica-Bold", "css": "'Helvetica Neue', Helvetica, Arial, sans-serif"},
     "Typewriter Monospace (Courier)": {"rl": "Courier", "rl_bold": "Courier-Bold", "css": "'Courier New', Courier, monospace"}
@@ -100,7 +102,7 @@ selected_theme_name = st.sidebar.selectbox("Pilih Tema Color Palette:", list(THE
 theme = THEMES[selected_theme_name]
 emojis = theme['emojis'].split()
 
-st.sidebar.subheader("📄 Kustom Kertas")
+st.sidebar.subheader("📄 Kustomisasi Kertas & Tipografi")
 paper_style = st.sidebar.selectbox(
     "Pilih Pola Kertas:",
     ["Polos (Clean Blank)", "Buku Tulis (Ruled Lines)", "Kotak-Kotak (Grid)", "Bintik-Bintik (Dotted)"]
@@ -130,6 +132,8 @@ elif paper_style == "Bintik-Bintik (Dotted)":
 
 st.markdown(f"""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
     /* Latar belakang utama DAN sidebar */
     .stApp, [data-testid="stSidebar"] {{
         background: {theme['gradient']} !important;
@@ -273,6 +277,7 @@ st.markdown(f"""
     
     .preview-paper * {{
         color: #333333 !important;
+        font-family: {selected_font['css']};
     }}
 
     /* Tombol Utama */
