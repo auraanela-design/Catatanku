@@ -165,30 +165,39 @@ st.markdown(f"""
         opacity: 0.9;
         font-family: {selected_font['css']};
     }}
-    
-    /* Container Uploader */
-    div[data-testid="stExpander"], div[data-testid="stFileUploader"] {{
-        background-color: {theme['card_bg']};
-        border-radius: 15px;
-        padding: 10px;
+
+    /* Kolom Container Uploader (Putih Terang Transparan agar Kelihatan) */
+    div[data-testid="stFileUploader"] {{
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        border-radius: 15px !important;
+        padding: 15px !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }}
 
-    /* Box Dropzone Uploader */
+    /* Dropzone Uploader */
     [data-testid="stFileUploaderDropzone"] {{
         background-color: #FFFFFF !important;
         border: 2px dashed {theme['accent']} !important;
         border-radius: 12px !important;
-        padding: 20px !important;
+        padding: 15px !important;
     }}
 
-    /* Merapikan Tombol Upload & Mengatasi Teks Bertumpuk */
+    /* Teks instruksi di dalam uploader agar tetap terlihat gelap & jelas */
+    [data-testid="stFileUploaderDropzone"] section, 
+    [data-testid="stFileUploaderDropzone"] span, 
+    [data-testid="stFileUploaderDropzone"] small {{
+        color: #333333 !important;
+    }}
+
+    /* Merapikan Tombol Browse/Upload agar Tidak Bertumpuk */
     [data-testid="stFileUploaderDropzone"] button {{
-        border-radius: 8px !important;
-        border: 1px solid #CCCCCC !important;
         background-color: #F8F9FA !important;
         color: #333333 !important;
+        border: 1px solid #DCDCDC !important;
+        border-radius: 8px !important;
         font-weight: 600 !important;
-        margin: 0 auto !important;
+        position: relative !important;
+        display: inline-block !important;
     }}
 
     /* Preview Lembar Rangkuman */
