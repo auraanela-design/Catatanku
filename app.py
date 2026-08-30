@@ -32,6 +32,18 @@ THEMES = {
         "pdf_header": colors.HexColor("#D87093"),
         "line_color": "#FFC0CB"
     },
+    "🍷 Maroon Strawberry": {
+        "gradient": "linear-gradient(135deg, #4A0E17 0%, #800020 50%, #C72C41 100%)",
+        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 235, 238, 0.92) 50%, rgba(244, 204, 211, 0.88) 100%)",
+        "card_bg": "rgba(255, 255, 255, 0.85)",
+        "text": "#4A0E17",
+        "accent": "#800020",
+        "emojis": "🍷 🍓 🥀 🕯️ 🍒",
+        "pdf_bg": colors.HexColor("#FAEBEE"),
+        "pdf_border": colors.HexColor("#C72C41"),
+        "pdf_header": colors.HexColor("#800020"),
+        "line_color": "#E8B4B8"
+    },
     "☁️ Langit Cerah": {
         "gradient": "linear-gradient(135deg, #E0F7FA 0%, #B3E5FC 50%, #E1BEE7 100%)",
         "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(224, 247, 250, 0.90) 50%, rgba(179, 229, 252, 0.85) 100%)",
@@ -83,7 +95,7 @@ FONT_SIZES = {
 }
 
 # 3. Sidebar Customization
-st.sidebar.subheader("🎨 Custom Studio & Tema")
+st.sidebar.subheader("🎨 Theme")
 selected_theme_name = st.sidebar.selectbox("Pilih Tema Color Palette:", list(THEMES.keys()))
 theme = THEMES[selected_theme_name]
 emojis = theme['emojis'].split()
