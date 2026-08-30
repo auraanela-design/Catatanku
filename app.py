@@ -90,10 +90,14 @@ FONTS = {
     "Typewriter Monospace (Courier)": {"rl": "Courier", "rl_bold": "Courier-Bold", "css": "'Courier New', Courier, monospace"}
 }
 
+# Ukuran Font Menggunakan Angka (pt)
 FONT_SIZES = {
-    "Kecil": {"css": "0.9rem", "rl": 9, "leading": 14},
-    "Sedang": {"css": "1.05rem", "rl": 11, "leading": 17},
-    "Besar": {"css": "1.2rem", "rl": 13, "leading": 20}
+    "10 pt": {"css": "10pt", "rl": 10, "leading": 14},
+    "11 pt": {"css": "11pt", "rl": 11, "leading": 15},
+    "12 pt": {"css": "12pt", "rl": 12, "leading": 16},
+    "14 pt": {"css": "14pt", "rl": 14, "leading": 18},
+    "16 pt": {"css": "16pt", "rl": 16, "leading": 20},
+    "18 pt": {"css": "18pt", "rl": 18, "leading": 22}
 }
 
 # 3. Sidebar Customization
@@ -102,7 +106,7 @@ selected_theme_name = st.sidebar.selectbox("Pilih Tema Color Palette:", list(THE
 theme = THEMES[selected_theme_name]
 emojis = theme['emojis'].split()
 
-st.sidebar.subheader("📄 Kustom Kertas")
+st.sidebar.subheader("📄 Kustomisasi Kertas & Tipografi")
 paper_style = st.sidebar.selectbox(
     "Pilih Pola Kertas:",
     ["Polos (Clean Blank)", "Buku Tulis (Ruled Lines)", "Kotak-Kotak (Grid)", "Bintik-Bintik (Dotted)"]
@@ -111,7 +115,7 @@ paper_style = st.sidebar.selectbox(
 font_style_name = st.sidebar.selectbox("Pilih Gaya Font:", list(FONTS.keys()))
 selected_font = FONTS[font_style_name]
 
-font_size_name = st.sidebar.selectbox("Ukuran Font:", list(FONT_SIZES.keys()), index=1)
+font_size_name = st.sidebar.selectbox("Ukuran Font (pt):", list(FONT_SIZES.keys()), index=2)
 selected_size = FONT_SIZES[font_size_name]
 
 st.sidebar.subheader("📝 Mode Rangkuman AI")
