@@ -166,12 +166,19 @@ st.markdown(f"""
         font-family: {selected_font['css']};
     }}
 
-    /* Kolom Container Uploader (Putih Terang Transparan agar Kelihatan) */
+    /* Container Utama Uploader */
     div[data-testid="stFileUploader"] {{
         background-color: rgba(255, 255, 255, 0.9) !important;
         border-radius: 15px !important;
         padding: 15px !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }}
+
+    /* Memaksa Judul Label Uploader Berwarna Hitam Pekat */
+    div[data-testid="stFileUploader"] label,
+    div[data-testid="stFileUploader"] label p {{
+        color: #000000 !important;
+        font-weight: bold !important;
     }}
 
     /* Dropzone Uploader */
@@ -182,22 +189,26 @@ st.markdown(f"""
         padding: 15px !important;
     }}
 
-    /* Teks instruksi di dalam uploader agar tetap terlihat gelap & jelas */
+    /* Memaksa Semua Teks & Ikon Di Dalam Dropzone Berwarna Hitam */
+    [data-testid="stFileUploaderDropzone"] *, 
     [data-testid="stFileUploaderDropzone"] section, 
     [data-testid="stFileUploaderDropzone"] span, 
-    [data-testid="stFileUploaderDropzone"] small {{
-        color: #333333 !important;
+    [data-testid="stFileUploaderDropzone"] small,
+    [data-testid="stFileUploaderDropzone"] div {{
+        color: #000000 !important;
     }}
 
-    /* Merapikan Tombol Browse/Upload agar Tidak Bertumpuk */
+    /* Merapikan & Memaksa Teks Tombol Browse Berwarna Hitam */
     [data-testid="stFileUploaderDropzone"] button {{
         background-color: #F8F9FA !important;
-        color: #333333 !important;
-        border: 1px solid #DCDCDC !important;
+        border: 1px solid #CCCCCC !important;
         border-radius: 8px !important;
+        margin: 0 auto !important;
+    }}
+    
+    [data-testid="stFileUploaderDropzone"] button * {{
+        color: #000000 !important;
         font-weight: 600 !important;
-        position: relative !important;
-        display: inline-block !important;
     }}
 
     /* Preview Lembar Rangkuman */
