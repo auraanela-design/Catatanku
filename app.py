@@ -4,6 +4,7 @@ from docx import Document
 from pptx import Presentation
 from PIL import Image
 import io
+import re
 
 # ReportLab Imports
 from reportlab.lib.pagesizes import letter
@@ -13,7 +14,7 @@ from reportlab.lib import colors
 
 # 1. Page Configuration
 st.set_page_config(
-    page_title="Laaura's Resume",
+    page_title="Laaura's Resume & Document Summarizer",
     page_icon="🩰",
     layout="wide"
 )
@@ -90,7 +91,6 @@ FONTS = {
     "Typewriter Monospace (Courier)": {"rl": "Courier", "rl_bold": "Courier-Bold", "css": "'Courier New', Courier, monospace"}
 }
 
-# Ukuran Font Menggunakan Angka (pt)
 FONT_SIZES = {
     "10 pt": {"css": "10pt", "rl": 10, "leading": 14},
     "11 pt": {"css": "11pt", "rl": 11, "leading": 15},
@@ -106,9 +106,9 @@ selected_theme_name = st.sidebar.selectbox("Pilih Tema Color Palette:", list(THE
 theme = THEMES[selected_theme_name]
 emojis = theme['emojis'].split()
 
-st.sidebar.subheader("📄 Kustomisasi Kertas & Tipografi")
+st.sidebar.subheader("📄 Kustom Kertas")
 paper_style = st.sidebar.selectbox(
-    "Pilih Pola Kertas:",
+    "Pilih Kertas:",
     ["Polos (Clean Blank)", "Buku Tulis (Ruled Lines)", "Kotak-Kotak (Grid)", "Bintik-Bintik (Dotted)"]
 )
 
@@ -120,10 +120,10 @@ selected_size = FONT_SIZES[font_size_name]
 
 st.sidebar.subheader("📝 Rangkuman")
 summary_format = st.sidebar.selectbox(
-    "Format:",
-    ["Campuran (Paragraf + Bullet Points)", "Bullet Points (Poin-Poin)", "Paragraf"]
+    "Format Rangkuman:",
+    ["Struktur Rapi AI", "Bullet Points (Poin-Poin Pilihan)", "Paragraf Eksekutif"]
 )
-summary_length = st.sidebar.radio("Panjang Rangkuman:", ["Singkat", "Sedang", "Panjang"])
+summary_length = st.sidebar.radio("Panjang Rangkuman:", ["Singkat", "Sedang", "Lengkap"])
 
 # Inject CSS Dynamic Styling
 paper_pattern_css = ""
@@ -138,7 +138,6 @@ st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-    /* Latar belakang utama DAN sidebar */
     .stApp, [data-testid="stSidebar"] {{
         background: {theme['gradient']} !important;
         background-attachment: fixed !important;
@@ -149,14 +148,10 @@ st.markdown(f"""
         font-family: {selected_font['css']};
     }}
 
-    /* ======================================================== */
-    /* KHUSUS SIDEBAR: MEMBUAT KOTAK PUTIH UNTUK KONTROL CONTROL */
-    /* ======================================================== */
     [data-testid="stSidebarContent"] {{
         padding: 15px !important;
     }}
 
-    /* Container elemen input di sidebar diberi latar putih terang */
     [data-testid="stSidebar"] div.stSelectbox, 
     [data-testid="stSidebar"] div.stRadio {{
         background-color: rgba(255, 255, 255, 0.95) !important;
@@ -166,7 +161,6 @@ st.markdown(f"""
         box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
     }}
 
-    /* Memaksa Semua Teks & Label di Sidebar Berwarna Hitam Pekat */
     [data-testid="stSidebar"] *, 
     [data-testid="stSidebar"] p, 
     [data-testid="stSidebar"] span, 
@@ -180,7 +174,6 @@ st.markdown(f"""
         font-weight: 500;
     }}
 
-    /* Judul Sub-Header Sidebar diberi latar putih juga */
     [data-testid="stSidebar"] h3 {{
         background-color: rgba(255, 255, 255, 0.95) !important;
         padding: 8px 12px !important;
@@ -191,14 +184,6 @@ st.markdown(f"""
         margin-bottom: 10px !important;
     }}
 
-    /* Inner box dropdown selectbox di sidebar */
-    [data-testid="stSidebar"] div[role="combobox"] {{
-        background-color: #FFFFFF !important;
-        border: 1px solid #DDDDDD !important;
-        border-radius: 8px !important;
-    }}
-
-    /* Header Utama Page */
     .main-title {{
         text-align: center;
         color: {theme['text']} !important;
@@ -220,7 +205,6 @@ st.markdown(f"""
         font-family: {selected_font['css']};
     }}
 
-    /* Container Utama Uploader */
     div[data-testid="stFileUploader"] {{
         background-color: rgba(255, 255, 255, 0.95) !important;
         border-radius: 15px !important;
@@ -228,14 +212,12 @@ st.markdown(f"""
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }}
 
-    /* Label Uploader */
     div[data-testid="stFileUploader"] label,
     div[data-testid="stFileUploader"] label p {{
         color: #000000 !important;
         font-weight: bold !important;
     }}
 
-    /* Dropzone Uploader */
     [data-testid="stFileUploaderDropzone"] {{
         background-color: #FFFFFF !important;
         border: 2px dashed {theme['accent']} !important;
@@ -243,29 +225,11 @@ st.markdown(f"""
         padding: 15px !important;
     }}
 
-    /* Teks & Ikon Di Dalam Dropzone Uploader */
-    [data-testid="stFileUploaderDropzone"] *, 
-    [data-testid="stFileUploaderDropzone"] section, 
-    [data-testid="stFileUploaderDropzone"] span, 
-    [data-testid="stFileUploaderDropzone"] small,
-    [data-testid="stFileUploaderDropzone"] div {{
+    [data-testid="stFileUploaderDropzone"] * {{
         color: #000000 !important;
     }}
 
-    /* Tombol Browse Uploader */
-    [data-testid="stFileUploaderDropzone"] button {{
-        background-color: #F8F9FA !important;
-        border: 1px solid #CCCCCC !important;
-        border-radius: 8px !important;
-        margin: 0 auto !important;
-    }}
-    
-    [data-testid="stFileUploaderDropzone"] button * {{
-        color: #000000 !important;
-        font-weight: 600 !important;
-    }}
-
-    /* Preview Lembar Rangkuman */
+    /* Layout Rangkuman Rapi ala GPT/Gemini */
     .preview-paper {{
         background: {theme['paper_gradient']} {paper_pattern_css};
         background-size: cover, 20px 20px, 20px 20px;
@@ -273,18 +237,33 @@ st.markdown(f"""
         border-radius: 16px;
         padding: 35px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-        color: #333333 !important;
+        color: #2D3748 !important;
         font-family: {selected_font['css']};
         font-size: {selected_size['css']};
         line-height: 1.8;
     }}
     
-    .preview-paper * {{
-        color: #333333 !important;
-        font-family: {selected_font['css']};
+    .preview-paper h3 {{
+        color: {theme['text']} !important;
+        font-size: 1.25em !important;
+        margin-top: 20px !important;
+        margin-bottom: 10px !important;
+        border-bottom: 2px solid {theme['line_color']};
+        padding-bottom: 5px;
+        font-weight: 700 !important;
     }}
 
-    /* Tombol Utama */
+    .preview-paper ul {{
+        margin-top: 5px;
+        margin-bottom: 15px;
+        padding-left: 20px;
+    }}
+
+    .preview-paper li {{
+        margin-bottom: 8px;
+        line-height: 1.6;
+    }}
+
     .stButton>button {{
         background-color: {theme['accent']} !important;
         color: white !important;
@@ -294,19 +273,13 @@ st.markdown(f"""
         padding: 0.6rem 1.8rem !important;
         font-size: 1rem !important;
         box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        transition: all 0.3s ease;
-    }}
-    
-    .stButton>button:hover {{
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(0,0,0,0.12);
     }}
     </style>
 """, unsafe_allow_html=True)
 
 # 4. Header Section
 st.markdown(f"<h1 class='main-title'>{emojis[0]} Laaura's Resume {emojis[1]}</h1>", unsafe_allow_html=True)
-st.markdown(f"<p class='watermark-tag'>✨ Created by Laaura ✨</p>", unsafe_allow_html=True)
+st.markdown(f"<p class='watermark-tag'>✨ Smart Document & Resume Summarizer ✨</p>", unsafe_allow_html=True)
 
 # 5. Text Extraction Functions
 def extract_text_from_pdf(uploaded_file):
@@ -330,33 +303,66 @@ def extract_text_from_pptx(uploaded_file):
                     text += paragraph.text + "\n"
     return text
 
-# 6. Smart Summarizer
-def generate_summary(text, length_option, format_option):
-    sentences = [s.strip() for s in text.split('.') if len(s.strip()) > 10]
-    if not sentences:
-        return "Tidak ada teks yang cukup untuk dirangkum."
-    
+# 6. Smart AI-Style Summarizer (Rapi ala GPT / Gemini)
+def format_sentence_highlight(sentence):
+    words = sentence.split()
+    if len(words) > 3:
+        # Menjadikan 2-4 kata pertama bold sebagai poin kunci (style GPT/Gemini)
+        head = " ".join(words[:3])
+        tail = " ".join(words[3:])
+        return f"<b>{head}</b> {tail}"
+    return sentence
+
+def generate_ai_style_summary(text, length_option, format_option):
+    # Membersihkan kalimat
+    raw_sentences = [s.strip() for s in re.split(r'[.\n]+', text) if len(s.strip()) > 12]
+    if not raw_sentences:
+        return "<i>Tidak ada teks yang cukup untuk dirangkum dari dokumen ini.</i>"
+
     if length_option == "Singkat":
-        limit = max(3, len(sentences) // 4)
+        limit = max(3, len(raw_sentences) // 4)
     elif length_option == "Sedang":
-        limit = max(5, len(sentences) // 2)
+        limit = max(6, len(raw_sentences) // 2)
     else:
-        limit = max(8, int(len(sentences) * 0.75))
+        limit = max(9, int(len(raw_sentences) * 0.75))
         
-    selected_sentences = sentences[:limit]
+    sentences = raw_sentences[:limit]
 
-    if format_option == "Bullet Points (Poin-Poin)":
-        return "<br/>".join([f"• {s}." for s in selected_sentences])
-    elif format_option == "Paragraf":
-        return ". ".join(selected_sentences) + "."
-    else:  # Campuran
-        mid = max(1, len(selected_sentences) // 2)
-        intro_para = ". ".join(selected_sentences[:mid]) + "."
-        bullet_pts = "<br/>".join([f"• {s}." for s in selected_sentences[mid:]])
-        return f"{intro_para}<br/><br/><b>Poin-Poin Utama:</b><br/>{bullet_pts}"
+    if format_option == "Bullet Points (Poin-Poin Pilihan)":
+        bullets = "".join([f"<li>{format_sentence_highlight(s)}.</li>" for s in sentences])
+        return f"<ul>{bullets}</ul>"
+        
+    elif format_option == "Paragraf Eksekutif":
+        paras = ". ".join(sentences) + "."
+        return f"<p>{paras}</p>"
+        
+    else:  # Format "Struktur Rapi AI (GPT & Gemini Style)"
+        n = len(sentences)
+        sec1_end = max(1, n // 3)
+        sec2_end = max(sec1_end + 1, (2 * n) // 3)
 
-# 7. ReportLab PDF Engine
-def create_custom_pdf(summary_text, custom_uploaded_images, theme_info, font_info, size_info, pattern_name):
+        overview_sents = sentences[:sec1_end]
+        points_sents = sentences[sec1_end:sec2_end]
+        action_sents = sentences[sec2_end:]
+
+        html_out = "<h3>📌 Ringkasan Eksekutif & Gambaran Umum</h3>"
+        html_out += f"<p>{'. '.join(overview_sents)}.</p>"
+
+        html_out += "<h3>🔑 Poin-Poin Kunci & Highlight Dokumen</h3><ul>"
+        for s in points_sents:
+            html_out += f"<li>{format_sentence_highlight(s)}.</li>"
+        html_out += "</ul>"
+
+        if action_sents:
+            html_out += "<h3>💡 Insight & Kesimpulan Utama</h3><ul>"
+            for s in action_sents:
+                html_out += f"<li>{format_sentence_highlight(s)}.</li>"
+            html_out += "</ul>"
+
+        return html_out
+
+# 7. ReportLab PDF Engine (Mendukung HTML Rapi GPT Style)
+def create_custom_pdf(summary_html, custom_uploaded_images, theme_info, font_info, size_info, pattern_name):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer, 
@@ -371,7 +377,7 @@ def create_custom_pdf(summary_text, custom_uploaded_images, theme_info, font_inf
     title_style = ParagraphStyle(
         'HeaderTitleCustom',
         fontName=font_info['rl_bold'],
-        fontSize=20,
+        fontSize=18,
         textColor=theme_info['pdf_header'],
         alignment=1,
         spaceAfter=4
@@ -380,9 +386,19 @@ def create_custom_pdf(summary_text, custom_uploaded_images, theme_info, font_inf
     sub_style = ParagraphStyle(
         'HeaderSubCustom',
         fontName=font_info['rl'],
-        fontSize=11,
+        fontSize=10,
         textColor=colors.gray,
         alignment=1
+    )
+
+    h3_style = ParagraphStyle(
+        'H3StylePDF',
+        fontName=font_info['rl_bold'],
+        fontSize=size_info['rl'] + 2,
+        leading=size_info['leading'] + 2,
+        textColor=theme_info['pdf_header'],
+        spaceBefore=10,
+        spaceAfter=6
     )
 
     body_style = ParagraphStyle(
@@ -390,8 +406,8 @@ def create_custom_pdf(summary_text, custom_uploaded_images, theme_info, font_inf
         fontName=font_info['rl'],
         fontSize=size_info['rl'],
         leading=size_info['leading'],
-        textColor=colors.HexColor("#333333"),
-        spaceAfter=8
+        textColor=colors.HexColor("#2D3748"),
+        spaceAfter=6
     )
 
     story = []
@@ -400,30 +416,47 @@ def create_custom_pdf(summary_text, custom_uploaded_images, theme_info, font_inf
     header_data = [[
         Paragraph(f"<b>{theme_info['emojis']} Laaura's Resume {theme_info['emojis']}</b>", title_style),
     ], [
-        Paragraph("<b>✨ Created by Laaura ✨</b>", sub_style)
+        Paragraph("<b>✨ Smart Document & Resume Summarizer ✨</b>", sub_style)
     ]]
     
     header_table = Table(header_data, colWidths=[520])
     header_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.white),
         ('BOX', (0,0), (-1,-1), 1.5, theme_info['pdf_border']),
-        ('PADDING', (0,0), (-1,-1), 12),
+        ('PADDING', (0,0), (-1,-1), 10),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
     ]))
     
     story.append(header_table)
-    story.append(Spacer(1, 18))
+    story.append(Spacer(1, 14))
 
-    # Summary Text Block
-    formatted_summary = summary_text.replace('<br/>', '<br/>')
-    summary_paragraph = Paragraph(formatted_summary, body_style)
-    
-    summary_table = Table([[summary_paragraph]], colWidths=[520])
+    # Parse HTML ringkasan ke bentuk komponen ReportLab
+    # Konversi tag HTML dasar ke elemen ReportLab
+    blocks = re.split(r'(<h3>.*?</h3>)', summary_html)
+    pdf_flowables = []
+
+    for block in blocks:
+        if not block.strip():
+            continue
+        if block.startswith('<h3>'):
+            clean_title = block.replace('<h3>', '').replace('</h3>', '')
+            pdf_flowables.append(Paragraph(clean_title, h3_style))
+        elif '<ul>' in block:
+            items = re.findall(r'<li>(.*?)</li>', block)
+            for item in items:
+                pdf_flowables.append(Paragraph(f"• {item}", body_style))
+        else:
+            clean_p = block.replace('<p>', '').replace('</p>', '').strip()
+            if clean_p:
+                pdf_flowables.append(Paragraph(clean_p, body_style))
+
+    # Wrap ringkasan dalam box tabel rapi
+    summary_table = Table([[pdf_flowables]], colWidths=[520])
     summary_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.white),
         ('LINELEFT', (0,0), (-1,-1), 4, theme_info['pdf_header']),
         ('BOX', (0,0), (-1,-1), 1, theme_info['pdf_border']),
-        ('PADDING', (0,0), (-1,-1), 15),
+        ('PADDING', (0,0), (-1,-1), 14),
     ]))
     
     story.append(summary_table)
@@ -431,7 +464,7 @@ def create_custom_pdf(summary_text, custom_uploaded_images, theme_info, font_inf
     # Manual Uploaded Images Section
     if custom_uploaded_images:
         story.append(Spacer(1, 15))
-        story.append(Paragraph(f"<b>{emojis[2]} Lampiran Gambar Tambahan:</b>", ParagraphStyle('ImgHeaderCustom', fontName=font_info['rl_bold'], fontSize=12, textColor=theme_info['pdf_header'])))
+        story.append(Paragraph(f"<b>{emojis[2]} Lampiran Gambar Tambahan:</b>", ParagraphStyle('ImgHeaderCustom', fontName=font_info['rl_bold'], fontSize=11, textColor=theme_info['pdf_header'])))
         story.append(Spacer(1, 8))
         
         for img_file in custom_uploaded_images:
@@ -519,7 +552,7 @@ if uploaded_file is not None:
                 raw_text = extract_text_from_pptx(uploaded_file)
 
             if raw_text.strip():
-                st.session_state['summary'] = generate_summary(
+                st.session_state['summary'] = generate_ai_style_summary(
                     raw_text, 
                     summary_length, 
                     summary_format
@@ -538,7 +571,7 @@ if 'summary' in st.session_state:
     st.markdown(f"""
         <div class="preview-paper">
             <h2 style="text-align: center; margin-top: 0;">{emojis[0]} Laaura's Resume {emojis[1]}</h2>
-            <p style="text-align: center; font-weight: bold; margin-bottom: 25px; opacity: 0.8;">✨ Created by Laaura ✨</p>
+            <p style="text-align: center; font-weight: bold; margin-bottom: 25px; opacity: 0.8;">✨ Smart Document Summarizer ✨</p>
             <hr style="border: none; border-top: 1px dashed {theme['line_color']}; margin-bottom: 20px;">
             <div>{summary}</div>
         </div>
