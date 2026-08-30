@@ -118,9 +118,9 @@ selected_font = FONTS[font_style_name]
 font_size_name = st.sidebar.selectbox("Ukuran Font (pt):", list(FONT_SIZES.keys()), index=2)
 selected_size = FONT_SIZES[font_size_name]
 
-st.sidebar.subheader("📝 Mode Rangkuman AI")
+st.sidebar.subheader("📝 Rangkuman")
 summary_format = st.sidebar.selectbox(
-    "Gaya Format Rangkuman:",
+    "Format:",
     ["Campuran (Paragraf + Bullet Points)", "Bullet Points (Poin-Poin)", "Paragraf"]
 )
 summary_length = st.sidebar.radio("Panjang Rangkuman:", ["Singkat", "Sedang", "Panjang"])
