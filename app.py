@@ -100,7 +100,7 @@ selected_theme_name = st.sidebar.selectbox("Pilih Tema Color Palette:", list(THE
 theme = THEMES[selected_theme_name]
 emojis = theme['emojis'].split()
 
-st.sidebar.subheader("📄 Kustomisasi Kertas & Tipografi")
+st.sidebar.subheader("📄 Kustom Kertas")
 paper_style = st.sidebar.selectbox(
     "Pilih Pola Kertas:",
     ["Polos (Clean Blank)", "Buku Tulis (Ruled Lines)", "Kotak-Kotak (Grid)", "Bintik-Bintik (Dotted)"]
