@@ -33,11 +33,11 @@ THEMES = {
         "line_color": "#FFC0CB"
     },
     "🍷 Maroon Strawberry": {
-        "gradient": "linear-gradient(135deg, #4A0E17 0%, #800020 50%, #C72C41 100%)",
+        "gradient": "linear-gradient(135deg, #3B0008 0%, #5E0015 50%, #800020 100%)",
         "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 235, 238, 0.92) 50%, rgba(244, 204, 211, 0.88) 100%)",
-        "card_bg": "rgba(255, 255, 255, 0.85)",
-        "text": "#4A0E17",
-        "accent": "#800020",
+        "card_bg": "rgba(255, 255, 255, 0.15)",
+        "text": "#FFFFFF",  # Font Putih
+        "accent": "#C72C41",
         "emojis": "🍷 🍓 🥀 🕯️ 🍒",
         "pdf_bg": colors.HexColor("#FAEBEE"),
         "pdf_border": colors.HexColor("#C72C41"),
@@ -69,16 +69,16 @@ THEMES = {
         "line_color": "#C8E6C9"
     },
     "🍂 Earth Warm": {
-        "gradient": "linear-gradient(135deg, #FDFBF7 0%, #F5E6D3 50%, #E2D1C3 100%)",
-        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(253, 251, 247, 0.90) 50%, rgba(245, 230, 211, 0.85) 100%)",
+        "gradient": "linear-gradient(135deg, #D7C4B7 0%, #AF9483 50%, #8C6D58 100%)",
+        "paper_gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 235, 226, 0.90) 50%, rgba(230, 215, 201, 0.85) 100%)",
         "card_bg": "rgba(255, 255, 255, 0.75)",
-        "text": "#4A3B32",
-        "accent": "#D7B596",
+        "text": "#3E2723",  # Tone Cokelat Tua Warm
+        "accent": "#8D6E63",
         "emojis": "🍂 ☕ 🧸 🪵 🌾",
         "pdf_bg": colors.HexColor("#FAF0E6"),
-        "pdf_border": colors.HexColor("#E2D1C3"),
-        "pdf_header": colors.HexColor("#8B5A2B"),
-        "line_color": "#E2D1C3"
+        "pdf_border": colors.HexColor("#D7B596"),
+        "pdf_header": colors.HexColor("#5D4037"),
+        "line_color": "#D7B596"
     }
 }
 
@@ -130,7 +130,7 @@ elif paper_style == "Bintik-Bintik (Dotted)":
 
 st.markdown(f"""
     <style>
-    /* Mengubah latar belakang area utama DAN sidebar agar seragam */
+    /* Latar belakang utama DAN sidebar */
     .stApp, [data-testid="stSidebar"] {{
         background: {theme['gradient']} !important;
         background-attachment: fixed !important;
@@ -138,7 +138,7 @@ st.markdown(f"""
         font-family: {selected_font['css']};
     }}
 
-    /* Menyesuaikan warna teks dan elemen di dalam sidebar */
+    /* Warna teks dan label di sidebar */
     [data-testid="stSidebar"] * {{
         color: {theme['text']} !important;
     }}
@@ -174,7 +174,7 @@ st.markdown(f"""
         border-radius: 16px;
         padding: 35px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-        color: {theme['text']};
+        color: #333333; /* Warna teks di dalam lembar kertas selalu gelap agar nyaman dibaca */
         font-family: {selected_font['css']};
         font-size: {selected_size['css']};
         line-height: 1.8;
@@ -427,11 +427,11 @@ if 'summary' in st.session_state:
     st.markdown("---")
     st.markdown(f"### {emojis[0]} Preview Lembar Rangkuman ({paper_style})")
     
-    # Live Paper Preview dengan Teks Rangkuman di dalamnya
+    # Live Paper Preview
     st.markdown(f"""
         <div class="preview-paper">
-            <h2 style="text-align: center; color: {theme['text']}; margin-top: 0;">{emojis[0]} Laaura's Resume {emojis[1]}</h2>
-            <p style="text-align: center; color: {theme['text']}; font-weight: bold; margin-bottom: 25px; opacity: 0.8;">✨ Created by Laaura ✨</p>
+            <h2 style="text-align: center; color: #333333; margin-top: 0;">{emojis[0]} Laaura's Resume {emojis[1]}</h2>
+            <p style="text-align: center; color: #666666; font-weight: bold; margin-bottom: 25px; opacity: 0.8;">✨ Created by Laaura ✨</p>
             <hr style="border: none; border-top: 1px dashed {theme['line_color']}; margin-bottom: 20px;">
             <div>{summary}</div>
         </div>
